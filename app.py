@@ -132,7 +132,7 @@ with st.sidebar:
             <b>Scopus Query:</b><br>
             <code style="font-size: 10px;">AF-ID(60028250) OR RTMNU</code><br>
             <b>Data Source:</b> {sync_meta.get('source', 'Cached')}<br>
-            <b>Last Synced:</b> {sync_meta.get('last_synced', 'Live')[:16].replace('T', ' ')}
+            <b>Last Synced:</b> {str(sync_meta.get('last_synced', 'Live'))[:16].replace('T', ' ')}
         </div>
         """,
         unsafe_allow_html=True
@@ -247,7 +247,6 @@ with tab1:
     st.markdown("#### 📈 Longitudinal Publication Trends & Citation Trajectory")
     
     col_t1, col_t2 = st.columns([7, 5])
-    
     df_yearly = get_publications_by_year(df_filtered)
     
     with col_t1:
@@ -405,7 +404,6 @@ with tab2:
     if not df_filtered.empty:
         top_papers = df_filtered.sort_values("citations", ascending=False).head(20).copy()
         
-        # Format DOI as clickable markdown link
         def make_clickable_doi(row):
             doi = row.get("doi", "")
             if doi and str(doi).startswith("10."):
@@ -435,7 +433,6 @@ with tab2:
 with tab3:
     st.markdown("#### 🌐 Global Collaboration Map & Industrial R&D Ecosystem")
     
-    # Extract country collaboration statistics
     country_counts = {}
     for clist in df_filtered["countries"].dropna():
         if isinstance(clist, list):
@@ -546,12 +543,10 @@ with tab4:
     col_q1, col_q2 = st.columns([5, 7])
     
     with col_q1:
-        # Quartiles Donut Chart
         if "quartile" in df_filtered.columns:
             q_counts = df_filtered["quartile"].value_counts().reset_index()
             q_counts.columns = ["quartile", "count"]
             
-            # Specific palette: Q1 #10B981, Q2 #3B82F6, Q3 #F59E0B, Q4 #EF4444
             color_map = {
                 "Q1": "#10B981",
                 "Q2": "#3B82F6",
@@ -579,7 +574,6 @@ with tab4:
             st.plotly_chart(fig_donut, use_container_width=True)
 
     with col_q2:
-        # Impact vs. Volume Quadrant Bubble Chart with Gold Dashed Benchmark Line
         if not df_filtered.empty and "department" in df_filtered.columns:
             dept_stats = df_filtered.groupby("department").agg(
                 publications=("scopus_id", "count"),
@@ -601,7 +595,6 @@ with tab4:
                 labels={"publications": "Total Publications", "cpp": "Citations Per Paper (CPP)"}
             )
             
-            # Add gold dashed benchmark line for Average CPP
             fig_bubble.add_hline(
                 y=avg_cpp,
                 line_dash="dash",
@@ -633,7 +626,7 @@ with tab4:
         
         for dept in top_depts_list:
             sub = df_filtered[df_filtered["department"] == dept]
-            v = len(sub) / max(1, len(df_filtered)) * 100 * 5  # normalized
+            v = len(sub) / max(1, len(df_filtered)) * 100 * 5
             c = sub["citations"].sum() / max(1, df_filtered["citations"].sum()) * 100 * 5
             cpp_val = min(100, (sub["citations"].sum() / max(1, len(sub))) * 5)
             q1_val = (sub["quartile"] == "Q1").sum() / max(1, len(sub)) * 100
@@ -1046,7 +1039,6 @@ st.markdown("### 📥 Research Data & BibTeX Export Suite")
 exp_col1, exp_col2, exp_col3 = st.columns(3)
 
 with exp_col1:
-    # CSV Export
     csv_data = df_filtered.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="📄 Export Filtered Dataset (CSV)",
@@ -1057,7 +1049,6 @@ with exp_col1:
     )
 
 with exp_col2:
-    # Excel Export
     excel_buffer = io.BytesIO()
     with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
         df_filtered.to_excel(writer, index=False, sheet_name="RTMNU Scopus")
@@ -1070,7 +1061,6 @@ with exp_col2:
     )
 
 with exp_col3:
-    # BibTeX Export
     bibtex_str = export_to_bibtex(df_filtered)
     st.download_button(
         label="📚 Export Citation Library (BibTeX)",
