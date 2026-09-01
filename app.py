@@ -1,7 +1,7 @@
 """
-RTMNU Live Scopus Intelligence Dashboard
-Centenary State University (Estd. 1923) | NIRF ID: IR-P-U-0332 | Scopus AF-ID: 60028250
-Full Multi-Tab Research Analytics, ICARE Glassmorphic UI, Plotly Charts, and 1-Click Isolated Print Dossier.
+RTMNU Live Scopus Intelligence Dashboard - Final Production Release
+Centenary State University (Estd. 1923) | NIRF ID: IR-O-U-0320 / IR-P-U-0332 | Scopus AF-ID: 60028250
+Full 7-Tab Research Intelligence Portal, ICARE Glassmorphic UI, Plotly Charts, AI Copilot & 1-Click Isolated Print Dossier.
 """
 
 import io
@@ -43,19 +43,80 @@ from styles import (
 # Page Configuration
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title=UNIVERSITY_CONFIG["app_title"],
+    page_title=UNIVERSITY_CONFIG.get("app_title", "RTMNU Live Scopus Intelligence Dashboard"),
     page_icon="🏛",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # ---------------------------------------------------------
-# Sidebar Controls & Theming
+# Responsive Sidebar JavaScript (Desktop permanent open / Mobile collapse)
+# ---------------------------------------------------------
+responsive_sidebar_js = """
+<script>
+(function() {
+    function adjustSidebar() {
+        const parentDoc = (window.parent && window.parent.document) ? window.parent.document : document;
+        const sidebar = parentDoc.querySelector('section[data-testid="stSidebar"]');
+        const collapseBtn = parentDoc.querySelector('button[data-testid="stSidebarCollapseButton"]');
+        if (window.innerWidth > 768) {
+            if (sidebar && sidebar.getAttribute('aria-expanded') === 'false') {
+                if (collapseBtn) collapseBtn.click();
+            }
+        }
+    }
+    window.addEventListener('resize', adjustSidebar);
+    setTimeout(adjustSidebar, 300);
+})();
+</script>
+"""
+components.html(responsive_sidebar_js, height=0, width=0)
+
+# ---------------------------------------------------------
+# Sidebar: Brand Box, Gateway Status, Live Sync & Filters
 # ---------------------------------------------------------
 with st.sidebar:
-    st.markdown("### ⚙️ Dashboard Controls")
-    
-    # Dark / Light theme toggle
+    # 1. Brand Box
+    st.markdown(
+        """
+        <div style="background: linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(14, 23, 42, 0.8) 100%); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px;">
+            <div style="font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 800; color: #0284C7; letter-spacing: 0.03em;">
+                🏛 RTMNU PORTAL
+            </div>
+            <div style="font-size: 11px; font-weight: 600; color: #F1F5F9; margin-top: 2px;">
+                Live Scopus Intelligence <span style="color: #38BDF8;">[IR-O-U-0320]</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # 2. Live Scopus Feed Status Indicator
+    st.markdown(
+        """
+        <div style="display: flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 8px 12px; margin-bottom: 14px; font-size: 11px; font-weight: 600; color: #10B981;">
+            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981; box-shadow: 0 0 8px #10B981;"></span>
+            <span>Live Scopus Feed • Auto-synced every 60m</span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # 3. Scopus Gateway Panel & Manual Refresh
+    st.markdown(
+        """
+        <div style="font-size: 12px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
+            🔄 Scopus Gateway
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    force_sync = st.button("🔄 Sync Scopus Now", use_container_width=True, help="Executes live institutional query against Elsevier Scopus API")
+    if force_sync:
+        st.cache_data.clear()
+
+    # 4. Theme Switcher
+    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
     theme_choice = st.radio(
         "Display Theme",
         options=["🌙 Dark Mode", "☀️ Light Mode"],
@@ -63,23 +124,17 @@ with st.sidebar:
         horizontal=True
     )
     current_theme = "dark" if "Dark" in theme_choice else "light"
-    
+
     st.markdown("---")
-    
-    # Scopus API Live Refresh button
-    st.markdown("### 🔄 Scopus Live Sync")
-    force_sync = st.button("⚡ Sync Scopus API", use_container_width=True, help="Triggers live auto-sync with Elsevier Scopus API")
-    if force_sync:
-        st.cache_data.clear()
 
 # ---------------------------------------------------------
-# Data Ingestion
+# Data Ingestion Engine
 # ---------------------------------------------------------
 @st.cache_data(ttl=UNIVERSITY_CONFIG.get("cache_ttl_seconds", 3600), show_spinner=False)
 def load_data(refresh_flag: bool = False):
     return get_rtmnu_scopus_data(force_refresh=refresh_flag)
 
-with st.spinner("Connecting to Scopus Intelligence Portal..."):
+with st.spinner("Connecting to Scopus Intelligence Gateway..."):
     df_raw, sync_meta = load_data(force_sync)
 
 # ---------------------------------------------------------
@@ -88,17 +143,20 @@ with st.spinner("Connecting to Scopus Intelligence Portal..."):
 with st.sidebar:
     st.markdown("### 🔍 Research Filters")
     
-    # Year Range
-    min_year = int(df_raw["year"].min()) if not df_raw.empty and "year" in df_raw.columns else 2012
-    max_year = int(df_raw["year"].max()) if not df_raw.empty and "year" in df_raw.columns else 2026
+    # 5. Year Slider 1950 - 2026
+    data_min_year = int(df_raw["year"].min()) if not df_raw.empty and "year" in df_raw.columns else 2012
+    slider_min = min(1950, data_min_year)
+    slider_max = 2026
+    
     year_range = st.slider(
-        "Publication Year Range",
-        min_value=min_year,
-        max_value=max_year,
-        value=(min_year, max_year)
+        "Publication Year Range (1950 - 2026)",
+        min_value=slider_min,
+        max_value=slider_max,
+        value=(data_min_year, slider_max),
+        step=1
     )
     
-    # Department Filter
+    # Academic Departments Multiselect
     all_depts = sorted(df_raw["department"].dropna().unique().tolist()) if "department" in df_raw.columns else []
     selected_depts = st.multiselect(
         "Academic Department",
@@ -106,11 +164,10 @@ with st.sidebar:
         default=[]
     )
     
-    # Quartile Filter
-    quartile_options = ["Q1", "Q2", "Q3", "Q4"]
+    # Journal Quartile Multiselect
     selected_quartiles = st.multiselect(
         "Journal Quartile",
-        options=quartile_options,
+        options=["Q1", "Q2", "Q3", "Q4"],
         default=[]
     )
     
@@ -121,7 +178,7 @@ with st.sidebar:
         default=[]
     )
     
-    # Document Type
+    # Document Type Multiselect
     all_doc_types = sorted(df_raw["document_type"].dropna().unique().tolist()) if "document_type" in df_raw.columns else []
     selected_doc_types = st.multiselect(
         "Document Type",
@@ -129,7 +186,7 @@ with st.sidebar:
         default=[]
     )
     
-    # Text Search
+    # Live Search Bar
     search_text = st.text_input("🔎 Search Title, Author, DOI", placeholder="e.g. Nanoparticles, Deshmukh...")
     
     st.markdown("---")
@@ -138,14 +195,14 @@ with st.sidebar:
         <div style="font-size: 11px; color: #94A3B8; line-height: 1.5;">
             <b>Scopus Query:</b><br>
             <code style="font-size: 10px;">AF-ID(60028250) OR RTMNU</code><br>
-            <b>Data Source:</b> {sync_meta.get('source', 'Cached')}<br>
+            <b>Data Mode:</b> <span style="color:#38BDF8;">{sync_meta.get('source', 'Cached')}</span><br>
             <b>Last Synced:</b> {str(sync_meta.get('last_synced', 'Live'))[:16].replace('T', ' ')}
         </div>
         """,
         unsafe_allow_html=True
     )
 
-# Apply filters
+# Apply global filters
 df_filtered = filter_publications(
     df_raw,
     year_range=year_range,
@@ -228,7 +285,7 @@ with col5:
 st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# Plotly Theme Helper
+# Plotly Theme Styling
 # ---------------------------------------------------------
 plot_template = "plotly_dark" if current_theme == "dark" else "plotly_white"
 plot_bg = "rgba(14, 23, 42, 0.4)" if current_theme == "dark" else "rgba(255, 255, 255, 0.6)"
@@ -262,10 +319,8 @@ with tab1:
         if not df_yearly.empty:
             df_yearly["cumulative_pubs"] = df_yearly["publications"].cumsum()
             
-            # Dual-Axis Plotly Chart
             fig_trends = make_subplots(specs=[[{"secondary_y": True}]])
             
-            # Primary axis: Blue Bars for Annual Publications
             fig_trends.add_trace(
                 go.Bar(
                     x=df_yearly["year"],
@@ -278,7 +333,6 @@ with tab1:
                 secondary_y=False
             )
             
-            # Secondary axis: Gold Line for Cumulative Total
             fig_trends.add_trace(
                 go.Scatter(
                     x=df_yearly["year"],
@@ -332,7 +386,6 @@ with tab1:
         )
         st.plotly_chart(fig_month, use_container_width=True)
 
-    # Annual Breakdown Table
     with st.expander("📑 View Detailed Annual Statistics Table"):
         if not df_yearly.empty:
             st.dataframe(
@@ -408,7 +461,6 @@ with tab2:
             )
             st.plotly_chart(fig_dept_cits, use_container_width=True)
 
-    # Landmark Papers Table with Live DOI links
     st.markdown("##### 🏆 RTMNU Landmark Research Papers (Top Cited)")
     if not df_filtered.empty:
         top_papers = df_filtered.sort_values("citations", ascending=False).head(20).copy()
@@ -500,7 +552,6 @@ with tab3:
             )
             st.plotly_chart(fig_c_bar, use_container_width=True)
 
-    # Departmental Treemap & Industry Breakdown
     col_t1, col_t2 = st.columns([7, 5])
     
     with col_t1:
@@ -626,7 +677,6 @@ with tab4:
             )
             st.plotly_chart(fig_bubble, use_container_width=True)
 
-    # Department Comparative Benchmark Radar Chart
     st.markdown("##### 🕸️ Departmental Multi-Dimensional Benchmark Radar")
     if not df_filtered.empty:
         top_depts_list = df_filtered["department"].value_counts().head(5).index.tolist()
@@ -666,7 +716,6 @@ with tab5:
     
     df_leaderboard = get_top_authors_leaderboard(df_filtered, top_n=50)
     
-    # 1. Top 3 Faculty Podium Cards (Gold 🥇, Silver 🥈, Bronze 🥉)
     if not df_leaderboard.empty and len(df_leaderboard) >= 3:
         p1 = df_leaderboard.iloc[0]
         p2 = df_leaderboard.iloc[1]
@@ -767,7 +816,6 @@ with tab5:
                 unsafe_allow_html=True
             )
 
-    # Expandable full faculty leaderboard table
     with st.expander("📋 View Complete Faculty Leaderboard (Top 50 Authors)", expanded=False):
         if not df_leaderboard.empty:
             st.dataframe(
@@ -787,7 +835,6 @@ with tab5:
     st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
     st.markdown("#### 🔬 Dynamic Author Dossier & Isolated 1-Click Print")
 
-    # 2. Interactive Faculty Selector & Print Button
     all_author_options = df_leaderboard["author"].tolist() if not df_leaderboard.empty else []
     
     if all_author_options:
@@ -805,12 +852,10 @@ with tab5:
             st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
             print_trigger = st.button("🖨 Print Profile", use_container_width=True, help="100% Isolated 1-Click Browser Print of Faculty Dossier")
 
-        # Get deep-dive author profile
         auth_profile = get_author_profile_metrics(df_filtered, selected_author)
         author_papers_df = auth_profile.get("publications_df", pd.DataFrame())
         author_trend_df = auth_profile.get("trend_df", pd.DataFrame())
 
-        # Handle 100% Isolated Iframe Printing
         print_html = generate_author_print_html(auth_profile, author_papers_df, author_trend_df)
         
         if print_trigger:
@@ -837,7 +882,6 @@ with tab5:
             components.html(js_code, height=0, width=0)
             st.success(f"🖨 Print dialog dispatched for **{selected_author}**!")
 
-        # 3. Dynamic Author Dossier UI
         st.markdown(
             f"""
             <div class="icare-hero" style="padding: 22px 26px; margin-top: 14px;">
@@ -863,7 +907,6 @@ with tab5:
             unsafe_allow_html=True
         )
 
-        # 5 KPI chips
         k1, k2, k3, k4, k5 = st.columns(5)
         with k1:
             st.markdown(render_kpi_card(
@@ -917,7 +960,6 @@ with tab5:
 
         st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
 
-        # Charts Row: Dual-axis Velocity Chart + Quartile Donut
         c_ch1, c_ch2 = st.columns([7, 5])
         
         with c_ch1:
@@ -986,7 +1028,6 @@ with tab5:
                 )
                 st.plotly_chart(fig_q_auth, use_container_width=True)
 
-        # Top 5 Landmark Contributions
         st.markdown("##### 🏆 Top 5 Landmark Contributions")
         if not author_papers_df.empty:
             for idx, r in author_papers_df.head(5).iterrows():
@@ -1007,7 +1048,6 @@ with tab5:
                     unsafe_allow_html=True
                 )
 
-        # Full Papers Table
         with st.expander(f"📚 View All {len(author_papers_df)} Indexed Publications for {selected_author}", expanded=False):
             if not author_papers_df.empty:
                 display_cols = ["title", "journal", "year", "citations", "quartile", "doi"]
@@ -1024,7 +1064,6 @@ with tab5:
                     hide_index=True
                 )
 
-        # Dossier Download & Direct Preview
         st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
         col_d1, col_d2 = st.columns([6, 6])
         with col_d1:
@@ -1045,7 +1084,6 @@ with tab5:
 with tab6:
     st.markdown("#### 📡 Scopus Indexed Publications Live Feed & Catalog")
     
-    # Action Export Buttons in Tab 6
     feed_col1, feed_col2, feed_col3, feed_col4 = st.columns([3, 3, 3, 3])
     
     with feed_col1:
@@ -1083,7 +1121,6 @@ with tab6:
     with feed_col4:
         feed_search = st.text_input("🔎 Search Feed", placeholder="Search title, author, DOI...", label_visibility="collapsed")
     
-    # Filter within feed if local search text entered
     df_feed_display = df_filtered.copy()
     if feed_search and feed_search.strip():
         q = feed_search.strip().lower()
@@ -1131,7 +1168,6 @@ with tab7:
     st.markdown("#### 🤖 RTMNU AI Research Intelligence Copilot")
     st.caption("Fast built-in Python/Pandas natural language assistant • Zero external API dependencies • Instant execution")
     
-    # Initialize Chat History
     if "copilot_messages" not in st.session_state:
         st.session_state["copilot_messages"] = [
             {
@@ -1140,7 +1176,6 @@ with tab7:
             }
         ]
         
-    # Prompt Chips & Clear History Action Bar
     chip_col1, chip_col2, chip_col3, chip_col4, chip_col5 = st.columns([3, 3, 3, 3, 2])
     
     selected_chip = None
@@ -1166,21 +1201,17 @@ with tab7:
             ]
             st.rerun()
 
-    # Display Chat History
     for msg in st.session_state["copilot_messages"]:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
             
-    # Chat Input
     user_prompt = st.chat_input("Ask anything about RTMNU Scopus publications, authors, citations, or trends...")
     
     prompt_to_run = selected_chip or user_prompt
     
     if prompt_to_run:
-        # Append User Message
         st.session_state["copilot_messages"].append({"role": "user", "content": prompt_to_run})
         
-        # Synthesize Intelligent Response
         with st.spinner("Analyzing Scopus dataset..."):
             response_text = answer_custom_query(prompt_to_run, df_filtered)
             
@@ -1228,13 +1259,13 @@ with exp_col3:
     )
 
 # ---------------------------------------------------------
-# Footer
+# Centenary University Footer
 # ---------------------------------------------------------
 st.markdown(
     f"""
     <div class="icare-footer">
         <b>{UNIVERSITY_CONFIG['full_name']}</b> • Centenary State University (Estd. 1923)<br>
-        NIRF ID: <b>{UNIVERSITY_CONFIG.get('nirf_id', 'IR-P-U-0332')}</b> • Scopus Affiliation ID: <b>60028250</b> • NAAC A Grade<br>
+        NIRF ID: <b>{UNIVERSITY_CONFIG.get('nirf_id', 'IR-O-U-0320')}</b> • Scopus Affiliation ID: <b>60028250</b> • NAAC A Grade<br>
         Powered by <b>ICARE Research Intelligence Portal</b> • Elsevier Scopus Search API
     </div>
     """,
