@@ -363,11 +363,23 @@ def get_custom_css(theme: str = "dark") -> str:
 
 
 def get_base64_image(image_path: str) -> str:
-    """Helper to convert local image to base64 string for direct HTML embedding."""
+    """Helper to convert local image to base64 string for direct HTML embedding with robust path resolution."""
     import os
-    if os.path.exists(image_path):
-        with open(image_path, "rb") as f:
-            return base64.b64encode(f.read()).decode("utf-8")
+    import base64
+    candidates = [
+        image_path,
+        os.path.join(os.path.dirname(__file__), image_path),
+        os.path.join(os.path.dirname(__file__), "assets", os.path.basename(image_path)),
+        os.path.join(os.getcwd(), image_path),
+        os.path.join(os.getcwd(), "assets", os.path.basename(image_path))
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            try:
+                with open(p, "rb") as f:
+                    return base64.b64encode(f.read()).decode("utf-8")
+            except Exception:
+                pass
     return ""
 
 
