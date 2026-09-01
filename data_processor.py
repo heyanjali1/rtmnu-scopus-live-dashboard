@@ -248,15 +248,23 @@ def get_author_profile_metrics(df: pd.DataFrame, author_name: str) -> Dict[str, 
     if author_df.empty:
         return {
             "author_name": author_name,
+            "department": "Department of Physics",
             "publications_count": 0,
             "total_citations": 0,
             "cpp": 0.0,
             "h_index": 0,
             "q1_count": 0,
             "q1_percentage": 0.0,
-            "top_journals": [],
+            "intl_collab_count": 0,
+            "intl_collab_pct": 0.0,
+            "industry_collab_count": 0,
+            "industry_collab_pct": 0.0,
+            "co_authors_count": 0,
+            "quartile_dist": {},
+            "top_journals": {},
             "co_authors": [],
-            "publications_df": pd.DataFrame()
+            "publications_df": pd.DataFrame(),
+            "trend_df": pd.DataFrame()
         }
 
     pubs_count = len(author_df)
@@ -264,8 +272,21 @@ def get_author_profile_metrics(df: pd.DataFrame, author_name: str) -> Dict[str, 
     total_cits = sum(cits_list)
     h_idx = compute_h_index(cits_list)
     cpp = round(total_cits / max(1, pubs_count), 2)
+    
+    # Primary Department
+    dept = author_df["department"].value_counts().index[0] if "department" in author_df.columns and not author_df["department"].empty else "Academic Faculty"
+
+    # Quartiles
     q1_cnt = int((author_df["quartile"].astype(str).str.upper() == "Q1").sum())
     q1_pct = round((q1_cnt / max(1, pubs_count)) * 100, 1)
+    q_dist = author_df["quartile"].value_counts().to_dict() if "quartile" in author_df.columns else {}
+
+    # Collaboration rates
+    intl_cnt = int(author_df["is_international_collab"].fillna(False).astype(bool).sum()) if "is_international_collab" in author_df.columns else 0
+    intl_pct = round((intl_cnt / max(1, pubs_count)) * 100, 1)
+    
+    ind_cnt = int(author_df["is_industry_collab"].fillna(False).astype(bool).sum()) if "is_industry_collab" in author_df.columns else 0
+    ind_pct = round((ind_cnt / max(1, pubs_count)) * 100, 1)
 
     # Top journals
     top_journals = author_df["journal"].value_counts().head(5).to_dict()
@@ -278,19 +299,33 @@ def get_author_profile_metrics(df: pd.DataFrame, author_name: str) -> Dict[str, 
             if cleaned and cleaned.lower() != author_name.lower():
                 co_authors_dict[cleaned] = co_authors_dict.get(cleaned, 0) + 1
 
-    top_co_authors = sorted(co_authors_dict.items(), key=lambda x: x[1], reverse=True)[:6]
+    top_co_authors = sorted(co_authors_dict.items(), key=lambda x: x[1], reverse=True)[:8]
+
+    # Annual Trend
+    trend_df = author_df.groupby("year").agg(
+        publications=("title", "count"),
+        citations=("citations", "sum")
+    ).reset_index().sort_values("year")
 
     return {
         "author_name": author_name,
+        "department": dept,
         "publications_count": pubs_count,
         "total_citations": total_cits,
         "cpp": cpp,
         "h_index": h_idx,
         "q1_count": q1_cnt,
         "q1_percentage": q1_pct,
+        "intl_collab_count": intl_cnt,
+        "intl_collab_pct": intl_pct,
+        "industry_collab_count": ind_cnt,
+        "industry_collab_pct": ind_pct,
+        "co_authors_count": len(co_authors_dict),
+        "quartile_dist": q_dist,
         "top_journals": top_journals,
         "co_authors": top_co_authors,
-        "publications_df": author_df.sort_values("citations", ascending=False)
+        "publications_df": author_df.sort_values("citations", ascending=False),
+        "trend_df": trend_df
     }
 
 
@@ -392,33 +427,91 @@ def export_to_bibtex(df: pd.DataFrame) -> str:
     return header + "\n\n".join(bibtex_entries)
 
 
-def generate_author_print_dossier_html(profile: Dict[str, Any]) -> str:
+def generate_author_print_html(
+    auth_profile: Dict[str, Any],
+    papers_df: Optional[pd.DataFrame] = None,
+    trend_df: Optional[pd.DataFrame] = None
+) -> str:
     """
-    Generates a clean, standalone, printable HTML research dossier for an author
-    with @media print styling that isolates only the dossier content when printed.
+    Generates a standalone, print-ready HTML research dossier for an author
+    complete with institutional crest, dossier header, SVG charts, and papers table.
     """
-    author = profile.get("author_name", "Researcher")
-    pubs = profile.get("publications_count", 0)
-    cits = profile.get("total_citations", 0)
-    cpp = profile.get("cpp", 0.0)
-    h_idx = profile.get("h_index", 0)
-    q1_cnt = profile.get("q1_count", 0)
-    q1_pct = profile.get("q1_percentage", 0.0)
+    author = auth_profile.get("author_name", "Faculty Researcher")
+    dept = auth_profile.get("department", "Department of Physics")
+    pubs = auth_profile.get("publications_count", 0)
+    cits = auth_profile.get("total_citations", 0)
+    cpp = auth_profile.get("cpp", 0.0)
+    h_idx = auth_profile.get("h_index", 0)
+    q1_cnt = auth_profile.get("q1_count", 0)
+    q1_pct = auth_profile.get("q1_percentage", 0.0)
+    intl_pct = auth_profile.get("intl_collab_pct", 0.0)
+    ind_pct = auth_profile.get("industry_collab_pct", 0.0)
+    co_cnt = auth_profile.get("co_authors_count", 0)
     
-    top_j = "".join([f"<li><b>{j}</b>: {c} papers</li>" for j, c in profile.get("top_journals", {}).items()])
-    top_co = "".join([f"<li><b>{a}</b> ({c} joint papers)</li>" for a, c in profile.get("co_authors", [])])
+    if papers_df is None or papers_df.empty:
+        papers_df = auth_profile.get("publications_df", pd.DataFrame())
+    if trend_df is None or trend_df.empty:
+        trend_df = auth_profile.get("trend_df", pd.DataFrame())
 
+    # Build SVG Velocity Chart if trend data exists
+    svg_chart = ""
+    if not trend_df.empty:
+        years = trend_df["year"].tolist()
+        pub_counts = trend_df["publications"].tolist()
+        max_p = max(pub_counts) if pub_counts and max(pub_counts) > 0 else 1
+        
+        # SVG Dimensions
+        w, h = 500, 140
+        padding = 30
+        chart_w = w - padding * 2
+        chart_h = h - padding * 2
+        n_pts = len(years)
+        
+        points = []
+        bars = []
+        for idx, (yr, pc) in enumerate(zip(years, pub_counts)):
+            x = padding + (idx / max(1, n_pts - 1)) * chart_w if n_pts > 1 else padding + chart_w / 2
+            bar_h = (pc / max_p) * chart_h
+            y = h - padding - bar_h
+            bars.append(f'<rect x="{x-8}" y="{y}" width="16" height="{bar_h}" rx="3" fill="#0284C7" opacity="0.8"/>')
+            bars.append(f'<text x="{x}" y="{h-10}" font-size="9" text-anchor="middle" fill="#64748b">{str(yr)[2:]}</text>')
+            bars.append(f'<text x="{x}" y="{y-4}" font-size="9" text-anchor="middle" font-weight="bold" fill="#0284C7">{pc}</text>')
+        
+        svg_chart = f"""
+        <svg width="100%" height="{h}" viewBox="0 0 {w} {h}" style="overflow: visible;">
+            <line x1="{padding}" y1="{h-padding}" x2="{w-padding}" y2="{h-padding}" stroke="#cbd5e1" stroke-width="1"/>
+            {''.join(bars)}
+        </svg>
+        """
+
+    # Top 5 Landmark Contributions
+    landmark_html = ""
+    if not papers_df.empty:
+        for idx, r in papers_df.head(5).iterrows():
+            doi = r.get("doi", "")
+            doi_link = f'<a href="https://doi.org/{doi}" target="_blank" style="color:#0284C7; text-decoration:none;">{doi} ↗</a>' if doi else "N/A"
+            landmark_html += f"""
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; margin-bottom: 8px;">
+                <div style="font-weight: 600; font-size: 12px; color: #0f172a;">{r.get('title', '')}</div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                    <i>{r.get('journal', '')}</i> ({r.get('year', '')}) • 
+                    <b>{r.get('citations', 0)} Citations</b> • 
+                    <span style="color:#10b981; font-weight:600;">{r.get('quartile', 'N/A')}</span> • DOI: {doi_link}
+                </div>
+            </div>
+            """
+
+    # Full Papers Table
     rows_html = ""
-    pubs_df = profile.get("publications_df", pd.DataFrame())
-    if isinstance(pubs_df, pd.DataFrame) and not pubs_df.empty:
-        for idx, r in pubs_df.head(25).iterrows():
+    if not papers_df.empty:
+        for idx, r in papers_df.iterrows():
             rows_html += f"""
             <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: 600;">{r.get('title', '')}</td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd; font-style: italic;">{r.get('journal', '')}</td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;">{r.get('year', '')}</td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center; font-weight: bold;">{r.get('citations', 0)}</td>
-                <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;"><span style="padding: 2px 6px; border-radius: 4px; background: #e0f2fe; color: #0284c7; font-size: 11px;">{r.get('quartile', 'N/A')}</span></td>
+                <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; font-weight: 500;">{r.get('title', '')}</td>
+                <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; font-style: italic; color: #475569;">{r.get('journal', '')}</td>
+                <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; text-align: center;">{r.get('year', '')}</td>
+                <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; text-align: center; font-weight: bold; color: #0f172a;">{r.get('citations', 0)}</td>
+                <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; text-align: center;"><span style="padding: 2px 6px; border-radius: 4px; background: #e0f2fe; color: #0284c7; font-size: 10px; font-weight: 600;">{r.get('quartile', 'N/A')}</span></td>
             </tr>
             """
 
@@ -426,178 +519,191 @@ def generate_author_print_dossier_html(profile: Dict[str, Any]) -> str:
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Scopus Research Dossier - {author}</title>
+    <title>Scopus Faculty Research Dossier - {author}</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+        * {{ box-sizing: border-box; }}
         body {{
             font-family: 'Inter', sans-serif;
             color: #0f172a;
             background: #ffffff;
             margin: 0;
-            padding: 24px;
+            padding: 20px;
+            font-size: 12px;
         }}
-        .header-box {{
-            border-bottom: 3px solid #0284C7;
-            padding-bottom: 16px;
-            margin-bottom: 24px;
+        .crest-header {{
+            border-bottom: 2px solid #0284C7;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }}
-        .author-title {{
+        .uni-name {{
             font-family: 'Outfit', sans-serif;
-            font-size: 26px;
-            font-weight: 700;
+            font-size: 16px;
+            font-weight: 800;
             color: #0284C7;
-            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }}
-        .meta-text {{
-            font-size: 13px;
-            color: #64748b;
-            margin-top: 4px;
-        }}
-        .metrics-grid {{
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 12px;
-            margin-bottom: 24px;
-        }}
-        .metric-card {{
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
-        }}
-        .metric-val {{
+        .doc-title {{
             font-family: 'Outfit', sans-serif;
             font-size: 22px;
             font-weight: 700;
             color: #0f172a;
+            margin: 4px 0 2px 0;
         }}
-        .metric-lbl {{
-            font-size: 11px;
+        .dept-title {{
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+        }}
+        .chips-grid {{
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }}
+        .chip {{
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 8px;
+            text-align: center;
+        }}
+        .chip-val {{
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: #0284C7;
+            line-height: 1.1;
+        }}
+        .chip-lbl {{
+            font-size: 10px;
             text-transform: uppercase;
             color: #64748b;
             margin-top: 4px;
-        }}
-        .section-title {{
-            font-family: 'Outfit', sans-serif;
-            font-size: 16px;
             font-weight: 600;
-            border-bottom: 1px solid #cbd5e1;
-            padding-bottom: 6px;
-            margin-top: 20px;
-            margin-bottom: 12px;
+        }}
+        .badges-row {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }}
+        .badge {{
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }}
+        .badge-green {{ background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }}
+        .badge-blue {{ background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }}
+        .badge-gold {{ background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }}
+        .badge-gray {{ background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }}
+        .section-h {{
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
             color: #1e293b;
+            border-bottom: 1.5px solid #cbd5e1;
+            padding-bottom: 4px;
+            margin: 16px 0 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
         }}
         table {{
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 11px;
         }}
         th {{
             background: #f1f5f9;
-            padding: 8px;
+            padding: 6px 8px;
             text-align: left;
             border-bottom: 2px solid #cbd5e1;
-            font-weight: 600;
-        }}
-        .print-btn {{
-            background: #0284C7;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(2,132,199,0.3);
-            margin-bottom: 16px;
+            font-weight: 700;
+            color: #334155;
         }}
         @media print {{
-            .no-print {{
-                display: none !important;
-            }}
-            body {{
-                padding: 0;
-            }}
+            .no-print {{ display: none !important; }}
+            body {{ padding: 0; }}
+            @page {{ margin: 12mm; size: A4; }}
         }}
     </style>
 </head>
 <body>
-    <div class="no-print" style="margin-bottom: 16px; text-align: right;">
-        <button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
-    </div>
-
-    <div class="header-box">
+    <div class="crest-header">
         <div>
-            <div style="font-size: 12px; font-weight: 700; color: #0284C7; text-transform: uppercase; letter-spacing: 0.05em;">ICARE Faculty Research Intelligence Dossier</div>
-            <h1 class="author-title">{author}</h1>
-            <div class="meta-text">Rashtrasant Tukadoji Maharaj Nagpur University (RTMNU) • Scopus AF-ID: 60028250</div>
+            <div class="uni-name">🏛 Rashtrasant Tukadoji Maharaj Nagpur University</div>
+            <div class="doc-title">{author}</div>
+            <div class="dept-title">{dept}</div>
         </div>
-        <div style="text-align: right; font-size: 11px; color: #64748b;">
-            Generated: {datetime.datetime.now().strftime('%d %b %Y, %H:%M')}<br>
-            NIRF ID: IR-P-U-0332
-        </div>
-    </div>
-
-    <div class="metrics-grid">
-        <div class="metric-card">
-            <div class="metric-val">{pubs:,}</div>
-            <div class="metric-lbl">Scopus Publications</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-val">{cits:,}</div>
-            <div class="metric-lbl">Total Citations</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-val">{cpp:.2f}</div>
-            <div class="metric-lbl">Citations / Paper</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-val" style="color: #0284C7;">{h_idx}</div>
-            <div class="metric-lbl">Author h-Index</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-val" style="color: #10b981;">{q1_cnt} ({q1_pct:.0f}%)</div>
-            <div class="metric-lbl">Q1 Journal Papers</div>
+        <div style="text-align: right; font-size: 11px; color: #64748b; line-height: 1.4;">
+            <b>Scopus AF-ID:</b> 60028250<br>
+            <b>NIRF ID:</b> IR-P-U-0332<br>
+            <b>Generated:</b> {datetime.datetime.now().strftime('%d %b %Y')}
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-        <div style="background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <div class="section-title" style="margin-top:0;">Top Publishing Venues</div>
-            <ul style="margin: 0; padding-left: 20px; font-size: 12px; line-height: 1.6;">
-                {top_j if top_j else "<li>Standard peer-reviewed journals</li>"}
-            </ul>
+    <div class="chips-grid">
+        <div class="chip">
+            <div class="chip-val">{pubs:,}</div>
+            <div class="chip-lbl">Publications</div>
         </div>
-        <div style="background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <div class="section-title" style="margin-top:0;">Primary Co-Authors</div>
-            <ul style="margin: 0; padding-left: 20px; font-size: 12px; line-height: 1.6;">
-                {top_co if top_co else "<li>Independent and departmental co-authors</li>"}
-            </ul>
+        <div class="chip">
+            <div class="chip-val" style="color:#f59e0b;">{cits:,}</div>
+            <div class="chip-lbl">Citations</div>
+        </div>
+        <div class="chip">
+            <div class="chip-val">{cpp:.2f}</div>
+            <div class="chip-lbl">Cites / Paper</div>
+        </div>
+        <div class="chip">
+            <div class="chip-val" style="color:#10b981;">{h_idx}</div>
+            <div class="chip-lbl">h-Index</div>
+        </div>
+        <div class="chip">
+            <div class="chip-val" style="color:#06b6d4;">{q1_pct:.0f}%</div>
+            <div class="chip-lbl">Q1 Ratio</div>
         </div>
     </div>
 
-    <div class="section-title">Indexed Scholarly Publications (Top Cited)</div>
+    <div class="badges-row">
+        <span class="badge badge-green">⭐ Q1 Top-Tier Papers: {q1_cnt}</span>
+        <span class="badge badge-blue">🌐 International Collab: {intl_pct:.0f}%</span>
+        <span class="badge badge-gold">🏭 Industry Collab: {ind_pct:.0f}%</span>
+        <span class="badge badge-gray">👥 Joint Co-Authors: {co_cnt}</span>
+    </div>
+
+    {f'<div class="section-h">Publication Velocity & Annual Trajectory</div>{svg_chart}' if svg_chart else ''}
+
+    <div class="section-h">Top 5 Landmark Contributions</div>
+    {landmark_html if landmark_html else '<p>No landmark contributions recorded.</p>'}
+
+    <div class="section-h" style="margin-top: 18px;">Full Indexed Scholarly Contributions ({pubs} Documents)</div>
     <table>
         <thead>
             <tr>
-                <th style="width: 48%;">Title</th>
-                <th style="width: 25%;">Journal</th>
-                <th style="width: 9%; text-align: center;">Year</th>
-                <th style="width: 9%; text-align: center;">Cites</th>
+                <th style="width: 50%;">Document Title</th>
+                <th style="width: 25%;">Journal / Venue</th>
+                <th style="width: 8%; text-align: center;">Year</th>
+                <th style="width: 8%; text-align: center;">Cites</th>
                 <th style="width: 9%; text-align: center;">Quartile</th>
             </tr>
         </thead>
         <tbody>
-            {rows_html if rows_html else "<tr><td colspan='5' style='text-align:center; padding: 12px;'>No records found.</td></tr>"}
+            {rows_html if rows_html else '<tr><td colspan="5" style="text-align:center;">No publications found.</td></tr>'}
         </tbody>
     </table>
 
-    <div style="margin-top: 30px; font-size: 10px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 10px;">
-        © {datetime.date.today().year} Rashtrasant Tukadoji Maharaj Nagpur University | ICARE Live Scopus Dashboard Dossier
+    <div style="margin-top: 24px; font-size: 9px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 8px;">
+        © {datetime.date.today().year} Rashtrasant Tukadoji Maharaj Nagpur University • ICARE Research Intelligence Portal
     </div>
 </body>
 </html>"""
+

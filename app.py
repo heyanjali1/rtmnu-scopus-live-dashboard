@@ -5,6 +5,7 @@ Full Multi-Tab Research Analytics, ICARE Glassmorphic UI, Plotly Charts, and 1-C
 """
 
 import io
+import base64
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
@@ -22,7 +23,7 @@ from data_processor import (
     get_author_profile_metrics,
     filter_publications,
     export_to_bibtex,
-    generate_author_print_dossier_html
+    generate_author_print_html
 )
 from styles import (
     get_custom_css,
@@ -661,64 +662,40 @@ with tab4:
 with tab5:
     st.markdown("#### 👥 Faculty & Researcher Intelligence Leaderboard")
     
-    df_leaderboard = get_top_authors_leaderboard(df_filtered, top_n=30)
+    df_leaderboard = get_top_authors_leaderboard(df_filtered, top_n=50)
     
-    col_a1, col_a2 = st.columns([7, 5])
-    
-    with col_a1:
-        st.markdown("##### 🏅 Top Publishing RTMNU Researchers")
-        if not df_leaderboard.empty:
-            st.dataframe(
-                df_leaderboard.rename(columns={
-                    "author": "Author Name",
-                    "department": "Primary Department",
-                    "publications": "Papers",
-                    "citations": "Citations",
-                    "cpp": "CPP",
-                    "h_index": "h-Index",
-                    "q1_papers": "Q1 Papers"
-                }),
-                use_container_width=True,
-                hide_index=True
-            )
-        else:
-            st.info("No author records match current filters.")
-
-    with col_a2:
-        st.markdown("##### 🔍 Author Profile Deep-Dive & Print")
+    # 1. Top 3 Faculty Podium Cards (Gold 🥇, Silver 🥈, Bronze 🥉)
+    if not df_leaderboard.empty and len(df_leaderboard) >= 3:
+        p1 = df_leaderboard.iloc[0]
+        p2 = df_leaderboard.iloc[1]
+        p3 = df_leaderboard.iloc[2]
         
-        # Author selection list
-        author_names = df_leaderboard["author"].tolist() if not df_leaderboard.empty else []
-        if author_names:
-            selected_author = st.selectbox("Select Faculty / Author", options=author_names, index=0)
-            
-            profile = get_author_profile_metrics(df_filtered, selected_author)
-            
+        pod1, pod2, pod3 = st.columns(3)
+        
+        with pod1:
             st.markdown(
                 f"""
-                <div class="glass-container" style="padding: 16px; margin-top: 10px;">
-                    <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: #0284C7;">
-                        {profile['author_name']}
+                <div class="glass-container" style="border: 2px solid #F59E0B; background: rgba(245, 158, 11, 0.08); padding: 18px; border-radius: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 24px;">🥇</span>
+                        <span class="icare-badge icare-badge-gold">RANK 1 • GOLD</span>
                     </div>
-                    <div style="font-size: 12px; color: #94A3B8; margin-bottom: 12px;">
-                        Rashtrasant Tukadoji Maharaj Nagpur University (RTMNU)
+                    <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: #F59E0B;">
+                        {p1['author']}
                     </div>
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center;">
-                        <div style="background: rgba(2, 132, 199, 0.1); padding: 8px; border-radius: 8px;">
-                            <div style="font-size: 18px; font-weight: 700;">{profile['publications_count']}</div>
-                            <div style="font-size: 10px; color: #94A3B8;">PAPERS</div>
+                    <div style="font-size: 12px; color: #94A3B8; margin-bottom: 12px;">{p1['department']}</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center;">
+                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700;">{p1['publications']}</div>
+                            <div style="font-size: 9px; color: #94A3B8;">PAPERS</div>
                         </div>
-                        <div style="background: rgba(245, 158, 11, 0.1); padding: 8px; border-radius: 8px;">
-                            <div style="font-size: 18px; font-weight: 700; color: #F59E0B;">{profile['total_citations']}</div>
-                            <div style="font-size: 10px; color: #94A3B8;">CITES</div>
+                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700; color: #F59E0B;">{p1['citations']:,}</div>
+                            <div style="font-size: 9px; color: #94A3B8;">CITES</div>
                         </div>
-                        <div style="background: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 8px;">
-                            <div style="font-size: 18px; font-weight: 700; color: #10B981;">{profile['h_index']}</div>
-                            <div style="font-size: 10px; color: #94A3B8;">h-INDEX</div>
-                        </div>
-                        <div style="background: rgba(6, 182, 212, 0.1); padding: 8px; border-radius: 8px;">
-                            <div style="font-size: 18px; font-weight: 700; color: #06B6D4;">{profile['q1_count']}</div>
-                            <div style="font-size: 10px; color: #94A3B8;">Q1 ({profile['q1_percentage']}%)</div>
+                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700; color: #10B981;">{p1['h_index']}</div>
+                            <div style="font-size: 9px; color: #94A3B8;">h-INDEX</div>
                         </div>
                     </div>
                 </div>
@@ -726,19 +703,339 @@ with tab5:
                 unsafe_allow_html=True
             )
             
-            # 1-Click Isolated Print Dossier Modal / View
-            dossier_html = generate_author_print_dossier_html(profile)
+        with pod2:
+            st.markdown(
+                f"""
+                <div class="glass-container" style="border: 2px solid #94A3B8; background: rgba(148, 163, 184, 0.08); padding: 18px; border-radius: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 24px;">🥈</span>
+                        <span class="icare-badge" style="background: rgba(148,163,184,0.15); color: #94A3B8; border: 1px solid rgba(148,163,184,0.3);">RANK 2 • SILVER</span>
+                    </div>
+                    <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: #E2E8F0;">
+                        {p2['author']}
+                    </div>
+                    <div style="font-size: 12px; color: #94A3B8; margin-bottom: 12px;">{p2['department']}</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center;">
+                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700;">{p2['publications']}</div>
+                            <div style="font-size: 9px; color: #94A3B8;">PAPERS</div>
+                        </div>
+                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700; color: #F59E0B;">{p2['citations']:,}</div>
+                            <div style="font-size: 9px; color: #94A3B8;">CITES</div>
+                        </div>
+                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700; color: #10B981;">{p2['h_index']}</div>
+                            <div style="font-size: 9px; color: #94A3B8;">h-INDEX</div>
+                        </div>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
             
+        with pod3:
+            st.markdown(
+                f"""
+                <div class="glass-container" style="border: 2px solid #B45309; background: rgba(180, 83, 9, 0.08); padding: 18px; border-radius: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 24px;">🥉</span>
+                        <span class="icare-badge" style="background: rgba(180,83,9,0.15); color: #D97706; border: 1px solid rgba(180,83,9,0.3);">RANK 3 • BRONZE</span>
+                    </div>
+                    <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: #FBBF24;">
+                        {p3['author']}
+                    </div>
+                    <div style="font-size: 12px; color: #94A3B8; margin-bottom: 12px;">{p3['department']}</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center;">
+                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700;">{p3['publications']}</div>
+                            <div style="font-size: 9px; color: #94A3B8;">PAPERS</div>
+                        </div>
+                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700; color: #F59E0B;">{p3['citations']:,}</div>
+                            <div style="font-size: 9px; color: #94A3B8;">CITES</div>
+                        </div>
+                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700; color: #10B981;">{p3['h_index']}</div>
+                            <div style="font-size: 9px; color: #94A3B8;">h-INDEX</div>
+                        </div>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+    # Expandable full faculty leaderboard table
+    with st.expander("📋 View Complete Faculty Leaderboard (Top 50 Authors)", expanded=False):
+        if not df_leaderboard.empty:
+            st.dataframe(
+                df_leaderboard.rename(columns={
+                    "author": "Faculty Name",
+                    "department": "Primary Department",
+                    "publications": "Publications",
+                    "citations": "Total Citations",
+                    "cpp": "CPP (Cites/Paper)",
+                    "h_index": "Author h-Index",
+                    "q1_papers": "Q1 Papers"
+                }),
+                use_container_width=True,
+                hide_index=True
+            )
+
+    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+    st.markdown("#### 🔬 Dynamic Author Dossier & Isolated 1-Click Print")
+
+    # 2. Interactive Faculty Selector & Print Button
+    all_author_options = df_leaderboard["author"].tolist() if not df_leaderboard.empty else []
+    
+    if all_author_options:
+        sel_col1, sel_col2 = st.columns([8, 4])
+        
+        with sel_col1:
+            selected_author = st.selectbox(
+                "Select Faculty Researcher to Inspect",
+                options=all_author_options,
+                index=0,
+                help="Authors sorted by indexed Scopus publication volume"
+            )
+            
+        with sel_col2:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+            print_trigger = st.button("🖨 Print Profile", use_container_width=True, help="100% Isolated 1-Click Browser Print of Faculty Dossier")
+
+        # Get deep-dive author profile
+        auth_profile = get_author_profile_metrics(df_filtered, selected_author)
+        author_papers_df = auth_profile.get("publications_df", pd.DataFrame())
+        author_trend_df = auth_profile.get("trend_df", pd.DataFrame())
+
+        # Handle 100% Isolated Iframe Printing
+        print_html = generate_author_print_html(auth_profile, author_papers_df, author_trend_df)
+        
+        if print_trigger:
+            b64_html = base64.b64encode(print_html.encode('utf-8')).decode('utf-8')
+            js_code = f"""
+            <script>
+            (function() {{
+                const b64 = "{b64_html}";
+                const html = decodeURIComponent(escape(window.atob(b64)));
+                const parentDoc = (window.parent && window.parent.document) ? window.parent.document : document;
+                let frame = parentDoc.getElementById('author-print-isolated-frame');
+                if (frame) frame.remove();
+                frame = parentDoc.createElement('iframe');
+                frame.id = 'author-print-isolated-frame';
+                frame.style.position = 'fixed'; frame.style.right = '0'; frame.style.bottom = '0';
+                frame.style.width = '0'; frame.style.height = '0'; frame.style.border = '0';
+                parentDoc.body.appendChild(frame);
+                const doc = frame.contentWindow.document;
+                doc.open(); doc.write(html); doc.close();
+                setTimeout(() => {{ frame.contentWindow.focus(); frame.contentWindow.print(); }}, 350);
+            }})();
+            </script>
+            """
+            components.html(js_code, height=0, width=0)
+            st.success(f"🖨 Print dialog dispatched for **{selected_author}**!")
+
+        # 3. Dynamic Author Dossier UI
+        st.markdown(
+            f"""
+            <div class="icare-hero" style="padding: 22px 26px; margin-top: 14px;">
+                <div class="badge-ribbon">
+                    <span class="icare-badge icare-badge-gold">⭐ Q1 Papers: {auth_profile['q1_count']}</span>
+                    <span class="icare-badge icare-badge-blue">🌐 Intl Collab: {auth_profile['intl_collab_pct']:.0f}%</span>
+                    <span class="icare-badge">🏭 Industry Collab: {auth_profile['industry_collab_pct']:.0f}%</span>
+                    <span class="icare-badge">👥 Co-Authors: {auth_profile['co_authors_count']}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                    <div>
+                        <h2 style="margin: 0; font-size: 26px; font-weight: 700; color: #0284C7;">{auth_profile['author_name']}</h2>
+                        <p style="margin: 4px 0 0 0; color: #94A3B8; font-size: 13px;">
+                            {auth_profile['department']} • Rashtrasant Tukadoji Maharaj Nagpur University (RTMNU)
+                        </p>
+                    </div>
+                    <div style="text-align: right; font-size: 12px; color: #64748B;">
+                        Scopus AF-ID: <b>60028250</b> | Centenary State University
+                    </div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        # 5 KPI chips
+        k1, k2, k3, k4, k5 = st.columns(5)
+        with k1:
+            st.markdown(render_kpi_card(
+                icon="📚",
+                title="Publications",
+                value=f"{auth_profile['publications_count']:,}",
+                subtext="Scopus Indexed",
+                delta=f"Rank #{df_leaderboard[df_leaderboard['author']==selected_author].index[0]+1 if not df_leaderboard[df_leaderboard['author']==selected_author].empty else 'N/A'}",
+                delta_type="up"
+            ), unsafe_allow_html=True)
+            
+        with k2:
+            st.markdown(render_kpi_card(
+                icon="💡",
+                title="Total Citations",
+                value=f"{auth_profile['total_citations']:,}",
+                subtext="Global Accrual",
+                delta=f"CPP: {auth_profile['cpp']:.1f}",
+                delta_type="gold"
+            ), unsafe_allow_html=True)
+            
+        with k3:
+            st.markdown(render_kpi_card(
+                icon="📈",
+                title="Cites / Paper (CPP)",
+                value=f"{auth_profile['cpp']:.2f}",
+                subtext="Impact Factor Ratio",
+                delta="Research Velocity",
+                delta_type="up"
+            ), unsafe_allow_html=True)
+            
+        with k4:
+            st.markdown(render_kpi_card(
+                icon="🎯",
+                title="Author h-Index",
+                value=f"{auth_profile['h_index']}",
+                subtext="Hirsch Citation Metric",
+                delta="Key Benchmark",
+                delta_type="up"
+            ), unsafe_allow_html=True)
+            
+        with k5:
+            st.markdown(render_kpi_card(
+                icon="⭐",
+                title="Q1 Publication Ratio",
+                value=f"{auth_profile['q1_percentage']:.0f}%",
+                subtext=f"{auth_profile['q1_count']} Q1 Articles",
+                delta="Top-Tier Journals",
+                delta_type="up"
+            ), unsafe_allow_html=True)
+
+        st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+
+        # Charts Row: Dual-axis Velocity Chart + Quartile Donut
+        c_ch1, c_ch2 = st.columns([7, 5])
+        
+        with c_ch1:
+            if not author_trend_df.empty:
+                author_trend_df["cum_pubs"] = author_trend_df["publications"].cumsum()
+                
+                fig_auth_trend = make_subplots(specs=[[{"secondary_y": True}]])
+                fig_auth_trend.add_trace(
+                    go.Bar(
+                        x=author_trend_df["year"],
+                        y=author_trend_df["publications"],
+                        name="Annual Papers",
+                        marker_color="#0284C7",
+                        opacity=0.85
+                    ),
+                    secondary_y=False
+                )
+                fig_auth_trend.add_trace(
+                    go.Scatter(
+                        x=author_trend_df["year"],
+                        y=author_trend_df["citations"],
+                        name="Citations Accrued",
+                        line=dict(color="#F59E0B", width=3),
+                        mode="lines+markers"
+                    ),
+                    secondary_y=True
+                )
+                fig_auth_trend.update_layout(
+                    title=dict(text=f"<b>Annual Publication & Citation Trajectory: {selected_author}</b>", font=dict(color=text_color, size=14)),
+                    template=plot_template,
+                    plot_bgcolor=plot_bg,
+                    paper_bgcolor=paper_bg,
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                    margin=dict(l=40, r=40, t=50, b=40),
+                    height=320
+                )
+                fig_auth_trend.update_xaxes(gridcolor=grid_color, tickmode="linear")
+                fig_auth_trend.update_yaxes(title_text="Annual Papers", secondary_y=False, gridcolor=grid_color)
+                fig_auth_trend.update_yaxes(title_text="Citations", secondary_y=True, showgrid=False)
+                
+                st.plotly_chart(fig_auth_trend, use_container_width=True)
+            else:
+                st.info("No timeline data available for author.")
+
+        with c_ch2:
+            q_dist = auth_profile.get("quartile_dist", {})
+            if q_dist:
+                df_q_auth = pd.DataFrame(list(q_dist.items()), columns=["quartile", "count"])
+                color_map = {"Q1": "#10B981", "Q2": "#3B82F6", "Q3": "#F59E0B", "Q4": "#EF4444"}
+                fig_q_auth = px.pie(
+                    df_q_auth,
+                    names="quartile",
+                    values="count",
+                    hole=0.55,
+                    color="quartile",
+                    color_discrete_map=color_map,
+                    title=f"<b>Quartile Breakdown: {selected_author}</b>"
+                )
+                fig_q_auth.update_layout(
+                    template=plot_template,
+                    plot_bgcolor=plot_bg,
+                    paper_bgcolor=paper_bg,
+                    margin=dict(l=20, r=20, t=50, b=20),
+                    height=320,
+                    legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5)
+                )
+                st.plotly_chart(fig_q_auth, use_container_width=True)
+
+        # Top 5 Landmark Contributions
+        st.markdown("##### 🏆 Top 5 Landmark Contributions")
+        if not author_papers_df.empty:
+            for idx, r in author_papers_df.head(5).iterrows():
+                doi = r.get("doi", "")
+                doi_link = f"[{doi}](https://doi.org/{doi}) ↗" if doi else "N/A"
+                st.markdown(
+                    f"""
+                    <div style="background: rgba(14, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 16px; margin-bottom: 10px;">
+                        <div style="font-weight: 600; font-size: 14px; color: #F1F5F9;">{r.get('title', '')}</div>
+                        <div style="font-size: 12px; color: #94A3B8; margin-top: 4px;">
+                            <i>{r.get('journal', '')}</i> ({r.get('year', '')}) • 
+                            <span style="color: #F59E0B; font-weight: 700;">{r.get('citations', 0)} Citations</span> • 
+                            <span style="color: #10B981; font-weight: 600;">{r.get('quartile', 'N/A')}</span> • 
+                            DOI: {doi_link}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+        # Full Papers Table
+        with st.expander(f"📚 View All {len(author_papers_df)} Indexed Publications for {selected_author}", expanded=False):
+            if not author_papers_df.empty:
+                display_cols = ["title", "journal", "year", "citations", "quartile", "doi"]
+                st.dataframe(
+                    author_papers_df[display_cols].rename(columns={
+                        "title": "Document Title",
+                        "journal": "Journal / Venue",
+                        "year": "Year",
+                        "citations": "Citations",
+                        "quartile": "Quartile",
+                        "doi": "DOI"
+                    }),
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+        # Dossier Download & Direct Preview
+        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+        col_d1, col_d2 = st.columns([6, 6])
+        with col_d1:
             st.download_button(
-                label=f"🖨 Download Printable Dossier ({selected_author})",
-                data=dossier_html,
-                file_name=f"RTMNU_Scopus_Dossier_{selected_author.replace(' ', '_').replace(',', '')}.html",
+                label=f"📥 Download Offline Dossier ({selected_author})",
+                data=print_html,
+                file_name=f"RTMNU_Dossier_{selected_author.replace(' ', '_').replace(',', '')}.html",
                 mime="text/html",
                 use_container_width=True
             )
-            
-            with st.expander("👁️ Preview & 1-Click Print Live Dossier"):
-                components.html(dossier_html, height=450, scrolling=True)
+        with col_d2:
+            with st.expander("👁️ Preview Print Dossier Live"):
+                components.html(print_html, height=450, scrolling=True)
 
 # ---------------------------------------------------------
 # Global Data Export Section
