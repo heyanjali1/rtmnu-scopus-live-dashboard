@@ -1,6 +1,6 @@
 """
 RTMNU Live Scopus Intelligence Dashboard - Final Production Release
-Centenary State University (Estd. 1923) | NIRF ID: IR-P-U-0332 | Scopus AF-ID: 60028250
+Centenary State University (Estd. 1923) | NIRF ID: IR-O-U-0320 | Scopus AF-ID: 60015668
 Full 7-Tab Research Intelligence Portal, ICARE Glassmorphic UI, Plotly Charts, AI Copilot & 1-Click Isolated Print Dossier.
 """
 
@@ -899,7 +899,7 @@ with tab5:
                         </p>
                     </div>
                     <div style="text-align: right; font-size: 12px; color: #64748B;">
-                        Scopus AF-ID: <b>60028250</b> | Centenary State University
+                        Scopus AF-ID: <b>{UNIVERSITY_CONFIG.get('scopus_af_id', '60015668')}</b> | Centenary State University
                     </div>
                 </div>
             </div>
@@ -1265,7 +1265,7 @@ st.markdown(
     f"""
     <div class="icare-footer">
         <b>{UNIVERSITY_CONFIG['full_name']}</b> • Centenary State University (Estd. 1923)<br>
-        NIRF ID: <b>{UNIVERSITY_CONFIG.get('nirf_id', 'IR-P-U-0332')}</b> • Scopus Affiliation ID: <b>60028250</b> • NAAC A Grade<br>
+        NIRF ID: <b>{UNIVERSITY_CONFIG.get('nirf_id', 'IR-O-U-0320')}</b> • Scopus Affiliation ID: <b>{UNIVERSITY_CONFIG.get('scopus_af_id', '60015668')}</b> • {UNIVERSITY_CONFIG.get('naac_badge', '⭐ NAAC A+ (CGPA 3.32)')}<br>
         Powered by <b>ICARE Research Intelligence Portal</b> • Elsevier Scopus Search API
     </div>
     """,

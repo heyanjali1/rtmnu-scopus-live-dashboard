@@ -644,8 +644,8 @@ def generate_author_print_html(
             <div class="dept-title">{dept}</div>
         </div>
         <div style="text-align: right; font-size: 11px; color: #64748b; line-height: 1.4;">
-            <b>Scopus AF-ID:</b> 60028250<br>
-            <b>NIRF ID:</b> IR-P-U-0332<br>
+            <b>Scopus AF-ID:</b> 60015668<br>
+            <b>NIRF ID:</b> IR-O-U-0320<br>
             <b>Generated:</b> {datetime.datetime.now().strftime('%d %b %Y')}
         </div>
     </div>

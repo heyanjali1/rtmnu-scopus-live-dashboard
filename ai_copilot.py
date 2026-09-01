@@ -17,8 +17,8 @@ def generate_executive_dossier(df: pd.DataFrame) -> str:
     """Generates a comprehensive executive research dossier."""
     kpis = calculate_top_10_kpis(df)
     uni_name = UNIVERSITY_CONFIG.get("full_name", "Rashtrasant Tukadoji Maharaj Nagpur University")
-    nirf_id = UNIVERSITY_CONFIG.get("nirf_id", "IR-P-U-0332")
-    scopus_id = "60028250"
+    nirf_id = UNIVERSITY_CONFIG.get("nirf_id", "IR-O-U-0320")
+    scopus_id = UNIVERSITY_CONFIG.get("scopus_af_id", "60015668")
     
     top_depts = df["department"].value_counts().head(5).to_dict() if not df.empty and "department" in df.columns else {}
     depts_str = "\n".join([f"- **{dept}**: {count:,} indexed papers" for dept, count in top_depts.items()])
@@ -26,7 +26,7 @@ def generate_executive_dossier(df: pd.DataFrame) -> str:
     return f"""### 📊 Executive Scopus Research Intelligence Dossier
 
 **Institution:** {uni_name} (RTMNU)  
-**Accreditation & IDs:** NIRF: `{nirf_id}` | Scopus AF-ID: `{scopus_id}` | NAAC A Grade  
+**Accreditation & IDs:** NIRF: `{nirf_id}` | Scopus AF-ID: `{scopus_id}` | NAAC A+ Grade (CGPA 3.32)  
 **Date of Intelligence Synthesis:** {datetime.datetime.now().strftime('%d %B %Y')}
 
 ---

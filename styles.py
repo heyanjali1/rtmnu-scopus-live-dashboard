@@ -362,26 +362,42 @@ def get_custom_css(theme: str = "dark") -> str:
     """
 
 
+def get_base64_image(image_path: str) -> str:
+    """Helper to convert local image to base64 string for direct HTML embedding."""
+    import os
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
+    return ""
+
+
 def render_icare_topbar(theme: str = "dark") -> str:
     """
-    Renders the ICARE Top Navigation Bar with branding, portal intelligence badge,
-    university metadata, and NIRF ID.
+    Renders the ICARE Top Navigation Bar with branding, ICARE logo, RTMNU seal logo,
+    portal intelligence badge, university metadata, and NIRF ID.
     """
-    nirf_id = UNIVERSITY_CONFIG.get("nirf_id", "IR-P-U-0332")
+    nirf_id = UNIVERSITY_CONFIG.get("nirf_id", "IR-O-U-0320")
     city = UNIVERSITY_CONFIG.get("city", "Nagpur, Maharashtra")
     full_name = UNIVERSITY_CONFIG.get("full_name", "Rashtrasant Tukadoji Maharaj Nagpur University")
-    scopus_id = "60028250"
+    scopus_id = UNIVERSITY_CONFIG.get("scopus_af_id", "60015668")
+
+    icare_b64 = get_base64_image("assets/icare_logo.png")
+    rtmnu_b64 = get_base64_image("assets/rtmnu_logo.png")
+
+    icare_img_html = f'<img src="data:image/png;base64,{icare_b64}" alt="ICARE Logo" style="height: 32px; background: #FFFFFF; padding: 2px 6px; border-radius: 6px; object-fit: contain; vertical-align: middle; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">' if icare_b64 else '<div class="icare-logo-pill"><span>⚡</span><span>ICARE</span></div>'
+    
+    rtmnu_img_html = f'<img src="data:image/png;base64,{rtmnu_b64}" alt="RTMNU Seal" style="height: 38px; width: 38px; border-radius: 50%; object-fit: cover; vertical-align: middle; border: 1.5px solid #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,0.25);">' if rtmnu_b64 else '<span>🏛</span>'
 
     html = f"""
     <div class="icare-topbar">
         <div class="icare-brand-group">
-            <div class="icare-logo-pill">
-                <span>⚡</span>
-                <span>ICARE</span>
-            </div>
+            {icare_img_html}
             <div class="icare-tag-cyan">PORTAL INTELLIGENCE</div>
-            <div style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px;">
-                {full_name}
+            <div style="display: flex; align-items: center; gap: 8px;">
+                {rtmnu_img_html}
+                <div style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px; color: #F1F5F9;">
+                    {full_name}
+                </div>
             </div>
         </div>
         <div class="icare-uni-meta">
@@ -394,15 +410,18 @@ def render_icare_topbar(theme: str = "dark") -> str:
 
 def render_icare_hero(total_pubs: int, total_cites: int, theme: str = "dark") -> str:
     """
-    Renders the Hero banner with centenary university badges, NAAC A accreditation,
-    NIRF university category ID, and highlight stat rank box.
+    Renders the Hero banner with centenary university badges, NAAC A+ accreditation,
+    NIRF university category ID, RTMNU seal, and highlight stat rank box.
     """
     full_name = UNIVERSITY_CONFIG.get("full_name", "Rashtrasant Tukadoji Maharaj Nagpur University")
     app_title = UNIVERSITY_CONFIG.get("app_title", "RTMNU Live Scopus Intelligence Dashboard")
     status_tag = UNIVERSITY_CONFIG.get("status_tag", "🏛 Centenary State University (Estd. 1923)")
-    naac_badge = UNIVERSITY_CONFIG.get("naac_badge", "⭐ NAAC A (CGPA 3.01)")
-    nirf_id = UNIVERSITY_CONFIG.get("nirf_id", "IR-P-U-0332")
-    scopus_id = "60028250"
+    naac_badge = UNIVERSITY_CONFIG.get("naac_badge", "⭐ NAAC A+ (CGPA 3.32)")
+    nirf_id = UNIVERSITY_CONFIG.get("nirf_id", "IR-O-U-0320")
+    scopus_id = UNIVERSITY_CONFIG.get("scopus_af_id", "60015668")
+    
+    rtmnu_b64 = get_base64_image("assets/rtmnu_logo.png")
+    rtmnu_hero_img = f'<img src="data:image/png;base64,{rtmnu_b64}" alt="RTMNU Seal" style="height: 72px; width: 72px; border-radius: 50%; object-fit: cover; border: 2.5px solid #F59E0B; box-shadow: 0 4px 16px rgba(245,158,11,0.35);">' if rtmnu_b64 else ''
 
     html = f"""
     <div class="icare-hero">
@@ -413,12 +432,15 @@ def render_icare_hero(total_pubs: int, total_cites: int, theme: str = "dark") ->
             <span class="icare-badge">📜 NIRF ID: {nirf_id}</span>
             <span class="icare-badge">🔬 Scopus AF-ID: {scopus_id}</span>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
-            <div style="flex: 1; min-width: 300px;">
-                <h1 class="hero-main-title">🏛 {app_title}</h1>
-                <p class="hero-sub">
-                    Institutional Research Excellence & Scopus Bibliometric Intelligence for <b>{full_name}</b>.
-                </p>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+            <div style="display: flex; align-items: center; gap: 18px; flex: 1; min-width: 320px;">
+                {rtmnu_hero_img}
+                <div>
+                    <h1 class="hero-main-title" style="margin: 0; font-size: 26px;">🏛 {app_title}</h1>
+                    <p class="hero-sub" style="margin-top: 4px;">
+                        Institutional Research Excellence & Scopus Bibliometric Intelligence for <b>{full_name}</b>.
+                    </p>
+                </div>
             </div>
             <div style="display: flex; gap: 14px;">
                 <div class="hero-stat-card">
