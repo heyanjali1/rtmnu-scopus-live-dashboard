@@ -25,6 +25,13 @@ from data_processor import (
     export_to_bibtex,
     generate_author_print_html
 )
+from ai_copilot import (
+    answer_custom_query,
+    generate_executive_dossier,
+    generate_department_rankings,
+    generate_q1_analysis,
+    generate_top_authors_analysis
+)
 from styles import (
     get_custom_css,
     render_icare_topbar,
@@ -230,14 +237,16 @@ grid_color = "rgba(255, 255, 255, 0.08)" if current_theme == "dark" else "rgba(0
 text_color = "#F1F5F9" if current_theme == "dark" else "#0F172A"
 
 # ---------------------------------------------------------
-# Tabs 1 to 5 Navigation
+# Tabs 1 to 7 Navigation
 # ---------------------------------------------------------
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "📈 Tab 1: Trends",
     "🎯 Tab 2: Impact",
     "🌐 Tab 3: Collaboration",
     "🏆 Tab 4: Quality & Benchmarks",
-    "👥 Tab 5: Author Intelligence & Print Dossier"
+    "👥 Tab 5: Authors & Dossier",
+    "📡 Tab 6: Live Feed",
+    "🤖 Tab 7: AI Copilot"
 ])
 
 # =========================================================
@@ -1029,6 +1038,154 @@ with tab5:
         with col_d2:
             with st.expander("👁️ Preview Print Dossier Live"):
                 components.html(print_html, height=450, scrolling=True)
+
+# =========================================================
+# TAB 6: LIVE FEED & FILTERABLE RESEARCH CATALOG
+# =========================================================
+with tab6:
+    st.markdown("#### 📡 Scopus Indexed Publications Live Feed & Catalog")
+    
+    # Action Export Buttons in Tab 6
+    feed_col1, feed_col2, feed_col3, feed_col4 = st.columns([3, 3, 3, 3])
+    
+    with feed_col1:
+        excel_buffer_tab6 = io.BytesIO()
+        with pd.ExcelWriter(excel_buffer_tab6, engine='openpyxl') as writer:
+            df_filtered.to_excel(writer, index=False, sheet_name="RTMNU Scopus")
+        st.download_button(
+            label="📊 Export Excel (.xlsx)",
+            data=excel_buffer_tab6.getvalue(),
+            file_name="RTMNU_Scopus_Live_Feed.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True
+        )
+        
+    with feed_col2:
+        bibtex_str_tab6 = export_to_bibtex(df_filtered)
+        st.download_button(
+            label="📑 Export BibTeX (.bib)",
+            data=bibtex_str_tab6,
+            file_name="RTMNU_Scopus_Live_Feed.bib",
+            mime="text/plain",
+            use_container_width=True
+        )
+        
+    with feed_col3:
+        csv_data_tab6 = df_filtered.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📄 Export CSV (.csv)",
+            data=csv_data_tab6,
+            file_name="RTMNU_Scopus_Live_Feed.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+        
+    with feed_col4:
+        feed_search = st.text_input("🔎 Search Feed", placeholder="Search title, author, DOI...", label_visibility="collapsed")
+    
+    # Filter within feed if local search text entered
+    df_feed_display = df_filtered.copy()
+    if feed_search and feed_search.strip():
+        q = feed_search.strip().lower()
+        m = (
+            df_feed_display["title"].astype(str).str.lower().str.contains(q, na=False) |
+            df_feed_display["authors"].astype(str).str.lower().str.contains(q, na=False) |
+            df_feed_display["journal"].astype(str).str.lower().str.contains(q, na=False) |
+            df_feed_display["department"].astype(str).str.lower().str.contains(q, na=False) |
+            df_feed_display["doi"].astype(str).str.lower().str.contains(q, na=False)
+        )
+        df_feed_display = df_feed_display[m]
+        
+    st.markdown(f"**Showing `{len(df_feed_display):,}` of `{len(df_filtered):,}` filtered documents**")
+    
+    if not df_feed_display.empty:
+        df_show = df_feed_display.copy()
+        df_show["DOI"] = df_show.apply(lambda r: f"[{r['doi']}](https://doi.org/{r['doi']}) ↗" if pd.notnull(r.get('doi')) and str(r.get('doi')).startswith('10.') else "N/A", axis=1)
+        
+        display_cols = ["title", "primary_author", "department", "journal", "year", "citations", "quartile", "document_type", "DOI"]
+        avail_cols = [c for c in display_cols if c in df_show.columns]
+        
+        st.dataframe(
+            df_show[avail_cols].rename(columns={
+                "title": "Document Title",
+                "primary_author": "Lead Author",
+                "department": "Department",
+                "journal": "Journal / Venue",
+                "year": "Year",
+                "citations": "Citations",
+                "quartile": "Quartile",
+                "document_type": "Type",
+                "DOI": "DOI Link"
+            }),
+            use_container_width=True,
+            hide_index=True,
+            height=540
+        )
+    else:
+        st.info("No documents match current filters or feed search terms.")
+
+# =========================================================
+# TAB 7: AI RESEARCH COPILOT
+# =========================================================
+with tab7:
+    st.markdown("#### 🤖 RTMNU AI Research Intelligence Copilot")
+    st.caption("Fast built-in Python/Pandas natural language assistant • Zero external API dependencies • Instant execution")
+    
+    # Initialize Chat History
+    if "copilot_messages" not in st.session_state:
+        st.session_state["copilot_messages"] = [
+            {
+                "role": "assistant",
+                "content": "👋 **Welcome to the RTMNU Scopus Intelligence Copilot!**\n\nI can analyze publication volumes, department benchmarks, Q1 journal quality, author leaderboards, citations, and collaboration trends. Select a prompt chip below or type your question!"
+            }
+        ]
+        
+    # Prompt Chips & Clear History Action Bar
+    chip_col1, chip_col2, chip_col3, chip_col4, chip_col5 = st.columns([3, 3, 3, 3, 2])
+    
+    selected_chip = None
+    with chip_col1:
+        if st.button("📊 Executive Dossier", use_container_width=True):
+            selected_chip = "Executive Dossier"
+    with chip_col2:
+        if st.button("🏛 Dept Rankings", use_container_width=True):
+            selected_chip = "Dept Rankings"
+    with chip_col3:
+        if st.button("🏆 Q1 Quality Analysis", use_container_width=True):
+            selected_chip = "Q1 Quality Analysis"
+    with chip_col4:
+        if st.button("👥 Top Authors", use_container_width=True):
+            selected_chip = "Top Authors"
+    with chip_col5:
+        if st.button("🗑 Clear Chat", use_container_width=True):
+            st.session_state["copilot_messages"] = [
+                {
+                    "role": "assistant",
+                    "content": "Chat history cleared. How can I help you analyze RTMNU research output?"
+                }
+            ]
+            st.rerun()
+
+    # Display Chat History
+    for msg in st.session_state["copilot_messages"]:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+            
+    # Chat Input
+    user_prompt = st.chat_input("Ask anything about RTMNU Scopus publications, authors, citations, or trends...")
+    
+    prompt_to_run = selected_chip or user_prompt
+    
+    if prompt_to_run:
+        # Append User Message
+        st.session_state["copilot_messages"].append({"role": "user", "content": prompt_to_run})
+        
+        # Synthesize Intelligent Response
+        with st.spinner("Analyzing Scopus dataset..."):
+            response_text = answer_custom_query(prompt_to_run, df_filtered)
+            
+        st.session_state["copilot_messages"].append({"role": "assistant", "content": response_text})
+        st.rerun()
 
 # ---------------------------------------------------------
 # Global Data Export Section
