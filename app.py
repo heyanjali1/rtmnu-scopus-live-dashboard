@@ -1,6 +1,6 @@
 """
 RTMNU Live Scopus Intelligence Dashboard - Final Production Release
-Centenary State University (Estd. 1923) | NIRF ID: IR-O-U-0320 / IR-P-U-0332 | Scopus AF-ID: 60028250
+Centenary State University (Estd. 1923) | NIRF ID: IR-P-U-0332 | Scopus AF-ID: 60028250
 Full 7-Tab Research Intelligence Portal, ICARE Glassmorphic UI, Plotly Charts, AI Copilot & 1-Click Isolated Print Dossier.
 """
 
@@ -78,13 +78,13 @@ components.html(responsive_sidebar_js, height=0, width=0)
 with st.sidebar:
     # 1. Brand Box
     st.markdown(
-        """
+        f"""
         <div style="background: linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(14, 23, 42, 0.8) 100%); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px;">
             <div style="font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 800; color: #0284C7; letter-spacing: 0.03em;">
                 🏛 RTMNU PORTAL
             </div>
             <div style="font-size: 11px; font-weight: 600; color: #F1F5F9; margin-top: 2px;">
-                Live Scopus Intelligence <span style="color: #38BDF8;">[IR-O-U-0320]</span>
+                Live Scopus Intelligence <span style="color: #38BDF8;">[{UNIVERSITY_CONFIG.get('nirf_id', 'IR-P-U-0332')}]</span>
             </div>
         </div>
         """,
@@ -1265,7 +1265,7 @@ st.markdown(
     f"""
     <div class="icare-footer">
         <b>{UNIVERSITY_CONFIG['full_name']}</b> • Centenary State University (Estd. 1923)<br>
-        NIRF ID: <b>{UNIVERSITY_CONFIG.get('nirf_id', 'IR-O-U-0320')}</b> • Scopus Affiliation ID: <b>60028250</b> • NAAC A Grade<br>
+        NIRF ID: <b>{UNIVERSITY_CONFIG.get('nirf_id', 'IR-P-U-0332')}</b> • Scopus Affiliation ID: <b>60028250</b> • NAAC A Grade<br>
         Powered by <b>ICARE Research Intelligence Portal</b> • Elsevier Scopus Search API
     </div>
     """,
