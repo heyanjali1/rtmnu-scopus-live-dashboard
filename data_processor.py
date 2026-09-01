@@ -390,3 +390,214 @@ def export_to_bibtex(df: pd.DataFrame) -> str:
         f"% Date: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
     )
     return header + "\n\n".join(bibtex_entries)
+
+
+def generate_author_print_dossier_html(profile: Dict[str, Any]) -> str:
+    """
+    Generates a clean, standalone, printable HTML research dossier for an author
+    with @media print styling that isolates only the dossier content when printed.
+    """
+    author = profile.get("author_name", "Researcher")
+    pubs = profile.get("publications_count", 0)
+    cits = profile.get("total_citations", 0)
+    cpp = profile.get("cpp", 0.0)
+    h_idx = profile.get("h_index", 0)
+    q1_cnt = profile.get("q1_count", 0)
+    q1_pct = profile.get("q1_percentage", 0.0)
+    
+    top_j = "".join([f"<li><b>{j}</b>: {c} papers</li>" for j, c in profile.get("top_journals", {}).items()])
+    top_co = "".join([f"<li><b>{a}</b> ({c} joint papers)</li>" for a, c in profile.get("co_authors", [])])
+
+    rows_html = ""
+    pubs_df = profile.get("publications_df", pd.DataFrame())
+    if isinstance(pubs_df, pd.DataFrame) and not pubs_df.empty:
+        for idx, r in pubs_df.head(25).iterrows():
+            rows_html += f"""
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: 600;">{r.get('title', '')}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd; font-style: italic;">{r.get('journal', '')}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;">{r.get('year', '')}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center; font-weight: bold;">{r.get('citations', 0)}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;"><span style="padding: 2px 6px; border-radius: 4px; background: #e0f2fe; color: #0284c7; font-size: 11px;">{r.get('quartile', 'N/A')}</span></td>
+            </tr>
+            """
+
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Scopus Research Dossier - {author}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&display=swap');
+        body {{
+            font-family: 'Inter', sans-serif;
+            color: #0f172a;
+            background: #ffffff;
+            margin: 0;
+            padding: 24px;
+        }}
+        .header-box {{
+            border-bottom: 3px solid #0284C7;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }}
+        .author-title {{
+            font-family: 'Outfit', sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: #0284C7;
+            margin: 0;
+        }}
+        .meta-text {{
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 4px;
+        }}
+        .metrics-grid {{
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }}
+        .metric-card {{
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }}
+        .metric-val {{
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: #0f172a;
+        }}
+        .metric-lbl {{
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-top: 4px;
+        }}
+        .section-title {{
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 6px;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            color: #1e293b;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }}
+        th {{
+            background: #f1f5f9;
+            padding: 8px;
+            text-align: left;
+            border-bottom: 2px solid #cbd5e1;
+            font-weight: 600;
+        }}
+        .print-btn {{
+            background: #0284C7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(2,132,199,0.3);
+            margin-bottom: 16px;
+        }}
+        @media print {{
+            .no-print {{
+                display: none !important;
+            }}
+            body {{
+                padding: 0;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="no-print" style="margin-bottom: 16px; text-align: right;">
+        <button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+    </div>
+
+    <div class="header-box">
+        <div>
+            <div style="font-size: 12px; font-weight: 700; color: #0284C7; text-transform: uppercase; letter-spacing: 0.05em;">ICARE Faculty Research Intelligence Dossier</div>
+            <h1 class="author-title">{author}</h1>
+            <div class="meta-text">Rashtrasant Tukadoji Maharaj Nagpur University (RTMNU) • Scopus AF-ID: 60028250</div>
+        </div>
+        <div style="text-align: right; font-size: 11px; color: #64748b;">
+            Generated: {datetime.datetime.now().strftime('%d %b %Y, %H:%M')}<br>
+            NIRF ID: IR-P-U-0332
+        </div>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-val">{pubs:,}</div>
+            <div class="metric-lbl">Scopus Publications</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-val">{cits:,}</div>
+            <div class="metric-lbl">Total Citations</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-val">{cpp:.2f}</div>
+            <div class="metric-lbl">Citations / Paper</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-val" style="color: #0284C7;">{h_idx}</div>
+            <div class="metric-lbl">Author h-Index</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-val" style="color: #10b981;">{q1_cnt} ({q1_pct:.0f}%)</div>
+            <div class="metric-lbl">Q1 Journal Papers</div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div style="background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div class="section-title" style="margin-top:0;">Top Publishing Venues</div>
+            <ul style="margin: 0; padding-left: 20px; font-size: 12px; line-height: 1.6;">
+                {top_j if top_j else "<li>Standard peer-reviewed journals</li>"}
+            </ul>
+        </div>
+        <div style="background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div class="section-title" style="margin-top:0;">Primary Co-Authors</div>
+            <ul style="margin: 0; padding-left: 20px; font-size: 12px; line-height: 1.6;">
+                {top_co if top_co else "<li>Independent and departmental co-authors</li>"}
+            </ul>
+        </div>
+    </div>
+
+    <div class="section-title">Indexed Scholarly Publications (Top Cited)</div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 48%;">Title</th>
+                <th style="width: 25%;">Journal</th>
+                <th style="width: 9%; text-align: center;">Year</th>
+                <th style="width: 9%; text-align: center;">Cites</th>
+                <th style="width: 9%; text-align: center;">Quartile</th>
+            </tr>
+        </thead>
+        <tbody>
+            {rows_html if rows_html else "<tr><td colspan='5' style='text-align:center; padding: 12px;'>No records found.</td></tr>"}
+        </tbody>
+    </table>
+
+    <div style="margin-top: 30px; font-size: 10px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+        © {datetime.date.today().year} Rashtrasant Tukadoji Maharaj Nagpur University | ICARE Live Scopus Dashboard Dossier
+    </div>
+</body>
+</html>"""
