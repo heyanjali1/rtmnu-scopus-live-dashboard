@@ -29,13 +29,13 @@ Built with **Python**, **Streamlit**, and **Plotly**, the dashboard integrates w
 
 | Tab | Feature & Visual Components |
 | :--- | :--- |
-| **📈 Tab 1: Trends** | **Dual-Axis Chart**: Annual publications (Blue `#0284C7`) + Cumulative Total (Gold `#F59E0B`, width 3) + Monthly publication velocity + Detailed statistics table. |
-| **🎯 Tab 2: Impact** | **Citation Accrual Curve**: Cumulative growth trajectory + Department citations ranking + Top 20 Landmark papers with live clickable **`DOI (↗)`** links. |
-| **🌐 Tab 3: Collaboration** | **Global Choropleth Map**: International co-authorship world map + Top 10 partner nations + Institutional disciplinary treemap + Corporate/Industry R&D breakdown. |
-| **🏆 Tab 4: Quality & Benchmarks** | **Quartiles Donut (Q1–Q4)** + Impact vs. Volume Quadrant Bubble Chart with **Gold Benchmark Line** (Univ Avg CPP) + Multi-dimensional Department Radar Benchmark. |
-| **👥 Tab 5: Authors & Dossier** | **Top 3 Podium Cards** (🥇 Gold, 🥈 Silver, 🥉 Bronze) + 50-Author Leaderboard + Faculty Selector + **`🖨 Print Profile` 100% Isolated 1-Click Browser Print** + Dynamic Dossier + Offline HTML export. |
-| **📡 Tab 6: Live Feed** | Searchable publications catalog with **📊 Export Excel (`.xlsx`)**, **📑 Export BibTeX (`.bib`)**, and **📄 Export CSV (`.csv`)**. |
-| **🤖 Tab 7: AI Copilot** | Fast zero-external-API natural language research assistant with prompt chips (`📊 Executive Dossier`, `🏛 Dept Rankings`, `🏆 Q1 Quality Analysis`, `👥 Top Authors`) & **`🗑 Clear Chat History`**. |
+| **📈 Trends** | **Dual-Axis Chart**: Annual publications (Blue `#0284C7`) + Cumulative Total (Gold `#F59E0B`, width 3) + Monthly publication velocity + Detailed statistics table. |
+| **🎯 Impact** | **Citation Accrual Curve**: Cumulative growth trajectory + Department citations ranking + Top 20 Landmark papers with live clickable **`DOI (↗)`** links. |
+| **🌐 Collaboration** | **Global Choropleth Map**: International co-authorship world map + Top 10 partner nations + Institutional disciplinary treemap + Corporate/Industry R&D breakdown. |
+| **🏆 Quality & Benchmarks** | **Quartiles Donut (Q1–Q4)** + Impact vs. Volume Quadrant Bubble Chart with **Gold Benchmark Line** (Univ Avg CPP) + Multi-dimensional Department Radar Benchmark. |
+| **👥 Authors & Dossier** | **Top 3 Podium Cards** (🥇 Gold, 🥈 Silver, 🥉 Bronze) + 50-Author Leaderboard + Faculty Selector + **`🖨 Print Profile` 100% Isolated 1-Click Browser Print** + Dynamic Dossier + Offline HTML export. |
+| **📡 Live Feed** | Searchable publications catalog with **📊 Export Excel (`.xlsx`)**, **📑 Export BibTeX (`.bib`)**, and **📄 Export CSV (`.csv`)**. |
+| **🤖 AI Copilot** | Fast zero-external-API natural language research assistant with prompt chips (`📊 Executive Dossier`, `🏛 Dept Rankings`, `🏆 Q1 Quality Analysis`, `👥 Top Authors`) & **`🗑 Clear Chat History`**. |
 
 ---
 

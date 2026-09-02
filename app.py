@@ -306,13 +306,13 @@ text_color = "#F1F5F9" if is_dark else "#0F172A"
 # Tabs 1 to 7 Navigation
 # ---------------------------------------------------------
 tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-    "📈 Tab 1: Trends",
-    "🎯 Tab 2: Impact",
-    "🌐 Tab 3: Collaboration",
-    "🏆 Tab 4: Quality & Benchmarks",
-    "👥 Tab 5: Authors & Dossier",
-    "📡 Tab 6: Live Feed",
-    "🤖 Tab 7: AI Copilot"
+    "📈 Trends",
+    "🎯 Impact",
+    "🌐 Collaboration",
+    "🏆 Quality & Benchmarks",
+    "👥 Authors & Dossier",
+    "📡 Live Feed",
+    "🤖 AI Copilot"
 ])
 
 # =========================================================
