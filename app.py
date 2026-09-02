@@ -73,28 +73,47 @@ responsive_sidebar_js = """
 components.html(responsive_sidebar_js, height=0, width=0)
 
 # ---------------------------------------------------------
-# Sidebar: Brand Box, Gateway Status, Live Sync & Filters
+# Sidebar: Controls, Theme, Brand Box, Live Sync & Filters
 # ---------------------------------------------------------
 with st.sidebar:
-    # 1. Brand Box
+    # 1. Theme Switcher (Processed first so theme is known globally)
+    theme_choice = st.radio(
+        "Display Theme",
+        options=["🌙 Dark Mode", "☀️ Light Mode"],
+        index=0,
+        horizontal=True
+    )
+    current_theme = "dark" if "Dark" in theme_choice else "light"
+    is_dark = (current_theme == "dark")
+    
+    brand_bg = "linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(14, 23, 42, 0.8) 100%)" if is_dark else "linear-gradient(135deg, rgba(2, 132, 199, 0.1) 0%, rgba(241, 245, 249, 0.95) 100%)"
+    brand_border = "1px solid rgba(2, 132, 199, 0.3)" if is_dark else "1px solid #BAE6FD"
+    brand_title_color = "#0284C7"
+    brand_sub_color = "#F1F5F9" if is_dark else "#0F172A"
+
+    st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
+
+    # 2. Brand Box
     st.markdown(
         f"""
-        <div style="background: linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(14, 23, 42, 0.8) 100%); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px;">
-            <div style="font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 800; color: #0284C7; letter-spacing: 0.03em;">
+        <div style="background: {brand_bg}; border: {brand_border}; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px;">
+            <div style="font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 800; color: {brand_title_color}; letter-spacing: 0.03em;">
                 🏛 RTMNU PORTAL
             </div>
-            <div style="font-size: 11px; font-weight: 600; color: #F1F5F9; margin-top: 2px;">
-                Live Scopus Intelligence <span style="color: #38BDF8;">[{UNIVERSITY_CONFIG.get('nirf_id', 'IR-P-U-0332')}]</span>
+            <div style="font-size: 11px; font-weight: 600; color: {brand_sub_color}; margin-top: 2px;">
+                Live Scopus Intelligence <span style="color: #0284C7; font-weight: 700;">[{UNIVERSITY_CONFIG.get('nirf_id', 'IR-O-U-0320')}]</span>
             </div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    # 2. Live Scopus Feed Status Indicator
+    # 3. Live Scopus Feed Status Indicator
+    status_box_bg = "rgba(16, 185, 129, 0.1)" if is_dark else "rgba(16, 185, 129, 0.12)"
+    status_box_border = "1px solid rgba(16, 185, 129, 0.25)" if is_dark else "1px solid #86EFAC"
     st.markdown(
-        """
-        <div style="display: flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 8px 12px; margin-bottom: 14px; font-size: 11px; font-weight: 600; color: #10B981;">
+        f"""
+        <div style="display: flex; align-items: center; gap: 8px; background: {status_box_bg}; border: {status_box_border}; border-radius: 8px; padding: 8px 12px; margin-bottom: 14px; font-size: 11px; font-weight: 600; color: #10B981;">
             <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981; box-shadow: 0 0 8px #10B981;"></span>
             <span>Live Scopus Feed • Auto-synced every 60m</span>
         </div>
@@ -102,10 +121,10 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-    # 3. Scopus Gateway Panel & Manual Refresh
+    # 4. Scopus Gateway Panel & Manual Refresh
     st.markdown(
-        """
-        <div style="font-size: 12px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
+        f"""
+        <div style="font-size: 12px; font-weight: 700; color: {'#94A3B8' if is_dark else '#475569'}; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
             🔄 Scopus Gateway
         </div>
         """,
@@ -114,16 +133,6 @@ with st.sidebar:
     force_sync = st.button("🔄 Sync Scopus Now", use_container_width=True, help="Executes live institutional query against Elsevier Scopus API")
     if force_sync:
         st.cache_data.clear()
-
-    # 4. Theme Switcher
-    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-    theme_choice = st.radio(
-        "Display Theme",
-        options=["🌙 Dark Mode", "☀️ Light Mode"],
-        index=0,
-        horizontal=True
-    )
-    current_theme = "dark" if "Dark" in theme_choice else "light"
 
     st.markdown("---")
 
@@ -143,7 +152,7 @@ with st.spinner("Connecting to Scopus Intelligence Gateway..."):
 with st.sidebar:
     st.markdown("### 🔍 Research Filters")
     
-    # 5. Year Slider 1950 - 2026
+    # Year Slider 1950 - 2026
     data_min_year = int(df_raw["year"].min()) if not df_raw.empty and "year" in df_raw.columns else 2012
     slider_min = min(1950, data_min_year)
     slider_max = 2026
@@ -192,10 +201,10 @@ with st.sidebar:
     st.markdown("---")
     st.markdown(
         f"""
-        <div style="font-size: 11px; color: #94A3B8; line-height: 1.5;">
+        <div style="font-size: 11px; color: {'#94A3B8' if is_dark else '#64748B'}; line-height: 1.5;">
             <b>Scopus Query:</b><br>
-            <code style="font-size: 10px;">AF-ID(60028250) OR RTMNU</code><br>
-            <b>Data Mode:</b> <span style="color:#38BDF8;">{sync_meta.get('source', 'Cached')}</span><br>
+            <code style="font-size: 10px;">AF-ID(60015668) OR RTMNU</code><br>
+            <b>Data Mode:</b> <span style="color:#0284C7; font-weight:600;">{sync_meta.get('source', 'Cached')}</span><br>
             <b>Last Synced:</b> {str(sync_meta.get('last_synced', 'Live'))[:16].replace('T', ' ')}
         </div>
         """,
@@ -287,11 +296,11 @@ st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
 # ---------------------------------------------------------
 # Plotly Theme Styling
 # ---------------------------------------------------------
-plot_template = "plotly_dark" if current_theme == "dark" else "plotly_white"
-plot_bg = "rgba(14, 23, 42, 0.4)" if current_theme == "dark" else "rgba(255, 255, 255, 0.6)"
+plot_template = "plotly_dark" if is_dark else "plotly_white"
+plot_bg = "rgba(14, 23, 42, 0.4)" if is_dark else "#FFFFFF"
 paper_bg = "rgba(0,0,0,0)"
-grid_color = "rgba(255, 255, 255, 0.08)" if current_theme == "dark" else "rgba(0, 0, 0, 0.06)"
-text_color = "#F1F5F9" if current_theme == "dark" else "#0F172A"
+grid_color = "rgba(255, 255, 255, 0.08)" if is_dark else "rgba(0, 0, 0, 0.06)"
+text_color = "#F1F5F9" if is_dark else "#0F172A"
 
 # ---------------------------------------------------------
 # Tabs 1 to 7 Navigation
@@ -355,9 +364,9 @@ with tab1:
                 margin=dict(l=40, r=40, t=60, b=40),
                 height=380
             )
-            fig_trends.update_xaxes(title_text="Publication Year", gridcolor=grid_color, tickmode="linear")
-            fig_trends.update_yaxes(title_text="Annual Publications", secondary_y=False, gridcolor=grid_color)
-            fig_trends.update_yaxes(title_text="Cumulative Publications", secondary_y=True, showgrid=False)
+            fig_trends.update_xaxes(title_text="Publication Year", gridcolor=grid_color, tickmode="linear", title_font=dict(color=text_color), tickfont=dict(color=text_color))
+            fig_trends.update_yaxes(title_text="Annual Publications", secondary_y=False, gridcolor=grid_color, title_font=dict(color=text_color), tickfont=dict(color=text_color))
+            fig_trends.update_yaxes(title_text="Cumulative Publications", secondary_y=True, showgrid=False, title_font=dict(color=text_color), tickfont=dict(color=text_color))
             
             st.plotly_chart(fig_trends, use_container_width=True)
         else:
@@ -379,10 +388,11 @@ with tab1:
             template=plot_template,
             plot_bgcolor=plot_bg,
             paper_bgcolor=paper_bg,
+            title=dict(font=dict(color=text_color, size=14)),
             margin=dict(l=40, r=20, t=60, b=40),
             height=380,
-            xaxis=dict(title="Month", gridcolor=grid_color),
-            yaxis=dict(title="Papers Published", gridcolor=grid_color)
+            xaxis=dict(title="Month", gridcolor=grid_color, title_font=dict(color=text_color), tickfont=dict(color=text_color)),
+            yaxis=dict(title="Papers Published", gridcolor=grid_color, title_font=dict(color=text_color), tickfont=dict(color=text_color))
         )
         st.plotly_chart(fig_month, use_container_width=True)
 
@@ -430,8 +440,8 @@ with tab2:
                 paper_bgcolor=paper_bg,
                 margin=dict(l=40, r=20, t=60, b=40),
                 height=350,
-                xaxis=dict(title="Year", gridcolor=grid_color),
-                yaxis=dict(title="Citations Accrued", gridcolor=grid_color)
+                xaxis=dict(title="Year", gridcolor=grid_color, title_font=dict(color=text_color), tickfont=dict(color=text_color)),
+                yaxis=dict(title="Citations Accrued", gridcolor=grid_color, title_font=dict(color=text_color), tickfont=dict(color=text_color))
             )
             st.plotly_chart(fig_cits, use_container_width=True)
     
@@ -453,10 +463,11 @@ with tab2:
                 template=plot_template,
                 plot_bgcolor=plot_bg,
                 paper_bgcolor=paper_bg,
+                title=dict(font=dict(color=text_color, size=14)),
                 margin=dict(l=40, r=20, t=60, b=40),
                 height=350,
-                xaxis=dict(title="Total Citations", gridcolor=grid_color),
-                yaxis=dict(title="", gridcolor=grid_color),
+                xaxis=dict(title="Total Citations", gridcolor=grid_color, title_font=dict(color=text_color), tickfont=dict(color=text_color)),
+                yaxis=dict(title="", gridcolor=grid_color, tickfont=dict(color=text_color)),
                 coloraxis_showscale=False
             )
             st.plotly_chart(fig_dept_cits, use_container_width=True)
@@ -522,6 +533,7 @@ with tab3:
                 template=plot_template,
                 plot_bgcolor=plot_bg,
                 paper_bgcolor=paper_bg,
+                title=dict(font=dict(color=text_color, size=14)),
                 margin=dict(l=0, r=0, t=50, b=0),
                 height=380,
                 geo=dict(showframe=False, showcoastlines=True, bgcolor=plot_bg)
@@ -545,10 +557,11 @@ with tab3:
                 template=plot_template,
                 plot_bgcolor=plot_bg,
                 paper_bgcolor=paper_bg,
+                title=dict(font=dict(color=text_color, size=14)),
                 margin=dict(l=40, r=20, t=50, b=40),
                 height=380,
-                xaxis=dict(title="Joint Publications", gridcolor=grid_color),
-                yaxis=dict(title="", gridcolor=grid_color)
+                xaxis=dict(title="Joint Publications", gridcolor=grid_color, title_font=dict(color=text_color), tickfont=dict(color=text_color)),
+                yaxis=dict(title="", gridcolor=grid_color, tickfont=dict(color=text_color))
             )
             st.plotly_chart(fig_c_bar, use_container_width=True)
 
@@ -569,6 +582,7 @@ with tab3:
             fig_tree.update_layout(
                 template=plot_template,
                 paper_bgcolor=paper_bg,
+                title=dict(font=dict(color=text_color, size=14)),
                 margin=dict(l=10, r=10, t=50, b=10),
                 height=340
             )
@@ -577,11 +591,12 @@ with tab3:
     with col_t2:
         st.markdown("##### 🏭 Corporate & Industry R&D Collaborations")
         ind_pubs = df_filtered[df_filtered["is_industry_collab"].fillna(False).astype(bool)]
+        ind_card_text = "#94A3B8" if is_dark else "#475569"
         st.markdown(
             f"""
             <div class="glass-container" style="padding: 16px;">
                 <div style="font-size: 24px; font-weight: 700; color: #F59E0B;">{len(ind_pubs):,} Papers</div>
-                <div style="font-size: 13px; color: #94A3B8; margin-bottom: 10px;">
+                <div style="font-size: 13px; color: {ind_card_text}; margin-bottom: 10px;">
                     Co-authored with pharmaceutical, chemical, energy, and IT industries.
                 </div>
                 <div style="font-size: 12px; line-height: 1.6;">
@@ -627,9 +642,10 @@ with tab4:
                 template=plot_template,
                 plot_bgcolor=plot_bg,
                 paper_bgcolor=paper_bg,
+                title=dict(font=dict(color=text_color, size=14)),
                 margin=dict(l=20, r=20, t=50, b=20),
                 height=350,
-                legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5)
+                legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5, font=dict(color=text_color))
             )
             st.plotly_chart(fig_donut, use_container_width=True)
 
@@ -669,11 +685,12 @@ with tab4:
                 template=plot_template,
                 plot_bgcolor=plot_bg,
                 paper_bgcolor=paper_bg,
+                title=dict(font=dict(color=text_color, size=14)),
                 margin=dict(l=40, r=20, t=50, b=40),
                 height=350,
                 showlegend=False,
-                xaxis=dict(gridcolor=grid_color),
-                yaxis=dict(gridcolor=grid_color)
+                xaxis=dict(gridcolor=grid_color, title_font=dict(color=text_color), tickfont=dict(color=text_color)),
+                yaxis=dict(gridcolor=grid_color, title_font=dict(color=text_color), tickfont=dict(color=text_color))
             )
             st.plotly_chart(fig_bubble, use_container_width=True)
 
@@ -699,12 +716,12 @@ with tab4:
             ))
             
         radar_fig.update_layout(
-            polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
+            polar=dict(radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(color=text_color))),
             template=plot_template,
             paper_bgcolor=paper_bg,
             margin=dict(l=40, r=40, t=40, b=40),
             height=380,
-            legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5)
+            legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5, font=dict(color=text_color))
         )
         st.plotly_chart(radar_fig, use_container_width=True)
 
@@ -716,6 +733,11 @@ with tab5:
     
     df_leaderboard = get_top_authors_leaderboard(df_filtered, top_n=50)
     
+    pod_inner_bg = "rgba(14, 23, 42, 0.6)" if is_dark else "#FFFFFF"
+    pod_inner_border = "1px solid rgba(255,255,255,0.08)" if is_dark else "1px solid #E2E8F0"
+    pod_subtext = "#94A3B8" if is_dark else "#475569"
+    pod_val_color = "#F1F5F9" if is_dark else "#0F172A"
+
     if not df_leaderboard.empty and len(df_leaderboard) >= 3:
         p1 = df_leaderboard.iloc[0]
         p2 = df_leaderboard.iloc[1]
@@ -726,27 +748,27 @@ with tab5:
         with pod1:
             st.markdown(
                 f"""
-                <div class="glass-container" style="border: 2px solid #F59E0B; background: rgba(245, 158, 11, 0.08); padding: 18px; border-radius: 16px;">
+                <div class="glass-container" style="border: 2px solid #F59E0B; background: {'rgba(245, 158, 11, 0.08)' if is_dark else '#FFFBEB'}; padding: 18px; border-radius: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="font-size: 24px;">🥇</span>
                         <span class="icare-badge icare-badge-gold">RANK 1 • GOLD</span>
                     </div>
-                    <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: #F59E0B;">
+                    <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: #D97706;">
                         {p1['author']}
                     </div>
-                    <div style="font-size: 12px; color: #94A3B8; margin-bottom: 12px;">{p1['department']}</div>
+                    <div style="font-size: 12px; color: {pod_subtext}; margin-bottom: 12px;">{p1['department']}</div>
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center;">
-                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
-                            <div style="font-size: 16px; font-weight: 700;">{p1['publications']}</div>
-                            <div style="font-size: 9px; color: #94A3B8;">PAPERS</div>
+                        <div style="background: {pod_inner_bg}; border: {pod_inner_border}; padding: 6px; border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700; color: {pod_val_color};">{p1['publications']}</div>
+                            <div style="font-size: 9px; color: {pod_subtext}; font-weight:600;">PAPERS</div>
                         </div>
-                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                        <div style="background: {pod_inner_bg}; border: {pod_inner_border}; padding: 6px; border-radius: 8px;">
                             <div style="font-size: 16px; font-weight: 700; color: #F59E0B;">{p1['citations']:,}</div>
-                            <div style="font-size: 9px; color: #94A3B8;">CITES</div>
+                            <div style="font-size: 9px; color: {pod_subtext}; font-weight:600;">CITES</div>
                         </div>
-                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                        <div style="background: {pod_inner_bg}; border: {pod_inner_border}; padding: 6px; border-radius: 8px;">
                             <div style="font-size: 16px; font-weight: 700; color: #10B981;">{p1['h_index']}</div>
-                            <div style="font-size: 9px; color: #94A3B8;">h-INDEX</div>
+                            <div style="font-size: 9px; color: {pod_subtext}; font-weight:600;">h-INDEX</div>
                         </div>
                     </div>
                 </div>
@@ -757,27 +779,27 @@ with tab5:
         with pod2:
             st.markdown(
                 f"""
-                <div class="glass-container" style="border: 2px solid #94A3B8; background: rgba(148, 163, 184, 0.08); padding: 18px; border-radius: 16px;">
+                <div class="glass-container" style="border: 2px solid #94A3B8; background: {'rgba(148, 163, 184, 0.08)' if is_dark else '#F8FAFC'}; padding: 18px; border-radius: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="font-size: 24px;">🥈</span>
-                        <span class="icare-badge" style="background: rgba(148,163,184,0.15); color: #94A3B8; border: 1px solid rgba(148,163,184,0.3);">RANK 2 • SILVER</span>
+                        <span class="icare-badge" style="background: rgba(148,163,184,0.15); color: #64748B; border: 1px solid rgba(148,163,184,0.3);">RANK 2 • SILVER</span>
                     </div>
-                    <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: #E2E8F0;">
+                    <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: {'#E2E8F0' if is_dark else '#1E293B'};">
                         {p2['author']}
                     </div>
-                    <div style="font-size: 12px; color: #94A3B8; margin-bottom: 12px;">{p2['department']}</div>
+                    <div style="font-size: 12px; color: {pod_subtext}; margin-bottom: 12px;">{p2['department']}</div>
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center;">
-                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
-                            <div style="font-size: 16px; font-weight: 700;">{p2['publications']}</div>
-                            <div style="font-size: 9px; color: #94A3B8;">PAPERS</div>
+                        <div style="background: {pod_inner_bg}; border: {pod_inner_border}; padding: 6px; border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700; color: {pod_val_color};">{p2['publications']}</div>
+                            <div style="font-size: 9px; color: {pod_subtext}; font-weight:600;">PAPERS</div>
                         </div>
-                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                        <div style="background: {pod_inner_bg}; border: {pod_inner_border}; padding: 6px; border-radius: 8px;">
                             <div style="font-size: 16px; font-weight: 700; color: #F59E0B;">{p2['citations']:,}</div>
-                            <div style="font-size: 9px; color: #94A3B8;">CITES</div>
+                            <div style="font-size: 9px; color: {pod_subtext}; font-weight:600;">CITES</div>
                         </div>
-                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                        <div style="background: {pod_inner_bg}; border: {pod_inner_border}; padding: 6px; border-radius: 8px;">
                             <div style="font-size: 16px; font-weight: 700; color: #10B981;">{p2['h_index']}</div>
-                            <div style="font-size: 9px; color: #94A3B8;">h-INDEX</div>
+                            <div style="font-size: 9px; color: {pod_subtext}; font-weight:600;">h-INDEX</div>
                         </div>
                     </div>
                 </div>
@@ -788,27 +810,27 @@ with tab5:
         with pod3:
             st.markdown(
                 f"""
-                <div class="glass-container" style="border: 2px solid #B45309; background: rgba(180, 83, 9, 0.08); padding: 18px; border-radius: 16px;">
+                <div class="glass-container" style="border: 2px solid #B45309; background: {'rgba(180, 83, 9, 0.08)' if is_dark else '#FFF7ED'}; padding: 18px; border-radius: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="font-size: 24px;">🥉</span>
                         <span class="icare-badge" style="background: rgba(180,83,9,0.15); color: #D97706; border: 1px solid rgba(180,83,9,0.3);">RANK 3 • BRONZE</span>
                     </div>
-                    <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: #FBBF24;">
+                    <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: #B45309;">
                         {p3['author']}
                     </div>
-                    <div style="font-size: 12px; color: #94A3B8; margin-bottom: 12px;">{p3['department']}</div>
+                    <div style="font-size: 12px; color: {pod_subtext}; margin-bottom: 12px;">{p3['department']}</div>
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center;">
-                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
-                            <div style="font-size: 16px; font-weight: 700;">{p3['publications']}</div>
-                            <div style="font-size: 9px; color: #94A3B8;">PAPERS</div>
+                        <div style="background: {pod_inner_bg}; border: {pod_inner_border}; padding: 6px; border-radius: 8px;">
+                            <div style="font-size: 16px; font-weight: 700; color: {pod_val_color};">{p3['publications']}</div>
+                            <div style="font-size: 9px; color: {pod_subtext}; font-weight:600;">PAPERS</div>
                         </div>
-                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                        <div style="background: {pod_inner_bg}; border: {pod_inner_border}; padding: 6px; border-radius: 8px;">
                             <div style="font-size: 16px; font-weight: 700; color: #F59E0B;">{p3['citations']:,}</div>
-                            <div style="font-size: 9px; color: #94A3B8;">CITES</div>
+                            <div style="font-size: 9px; color: {pod_subtext}; font-weight:600;">CITES</div>
                         </div>
-                        <div style="background: rgba(14, 23, 42, 0.6); padding: 6px; border-radius: 8px;">
+                        <div style="background: {pod_inner_bg}; border: {pod_inner_border}; padding: 6px; border-radius: 8px;">
                             <div style="font-size: 16px; font-weight: 700; color: #10B981;">{p3['h_index']}</div>
-                            <div style="font-size: 9px; color: #94A3B8;">h-INDEX</div>
+                            <div style="font-size: 9px; color: {pod_subtext}; font-weight:600;">h-INDEX</div>
                         </div>
                     </div>
                 </div>
@@ -894,11 +916,11 @@ with tab5:
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
                     <div>
                         <h2 style="margin: 0; font-size: 26px; font-weight: 700; color: #0284C7;">{auth_profile['author_name']}</h2>
-                        <p style="margin: 4px 0 0 0; color: #94A3B8; font-size: 13px;">
+                        <p style="margin: 4px 0 0 0; color: {text_secondary}; font-size: 13px;">
                             {auth_profile['department']} • Rashtrasant Tukadoji Maharaj Nagpur University (RTMNU)
                         </p>
                     </div>
-                    <div style="text-align: right; font-size: 12px; color: #64748B;">
+                    <div style="text-align: right; font-size: 12px; color: {text_secondary};">
                         Scopus AF-ID: <b>{UNIVERSITY_CONFIG.get('scopus_af_id', '60015668')}</b> | Centenary State University
                     </div>
                 </div>
@@ -992,13 +1014,13 @@ with tab5:
                     template=plot_template,
                     plot_bgcolor=plot_bg,
                     paper_bgcolor=paper_bg,
-                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color=text_color)),
                     margin=dict(l=40, r=40, t=50, b=40),
                     height=320
                 )
-                fig_auth_trend.update_xaxes(gridcolor=grid_color, tickmode="linear")
-                fig_auth_trend.update_yaxes(title_text="Annual Papers", secondary_y=False, gridcolor=grid_color)
-                fig_auth_trend.update_yaxes(title_text="Citations", secondary_y=True, showgrid=False)
+                fig_auth_trend.update_xaxes(gridcolor=grid_color, tickmode="linear", title_font=dict(color=text_color), tickfont=dict(color=text_color))
+                fig_auth_trend.update_yaxes(title_text="Annual Papers", secondary_y=False, gridcolor=grid_color, title_font=dict(color=text_color), tickfont=dict(color=text_color))
+                fig_auth_trend.update_yaxes(title_text="Citations", secondary_y=True, showgrid=False, title_font=dict(color=text_color), tickfont=dict(color=text_color))
                 
                 st.plotly_chart(fig_auth_trend, use_container_width=True)
             else:
@@ -1022,22 +1044,28 @@ with tab5:
                     template=plot_template,
                     plot_bgcolor=plot_bg,
                     paper_bgcolor=paper_bg,
+                    title=dict(font=dict(color=text_color, size=14)),
                     margin=dict(l=20, r=20, t=50, b=20),
                     height=320,
-                    legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5)
+                    legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5, font=dict(color=text_color))
                 )
                 st.plotly_chart(fig_q_auth, use_container_width=True)
 
         st.markdown("##### 🏆 Top 5 Landmark Contributions")
         if not author_papers_df.empty:
+            landmark_card_bg = "rgba(14, 23, 42, 0.6)" if is_dark else "#FFFFFF"
+            landmark_card_border = "1px solid rgba(255,255,255,0.08)" if is_dark else "1px solid #E2E8F0"
+            landmark_title_color = "#F1F5F9" if is_dark else "#0F172A"
+            landmark_sub_color = "#94A3B8" if is_dark else "#475569"
+            
             for idx, r in author_papers_df.head(5).iterrows():
                 doi = r.get("doi", "")
                 doi_link = f"[{doi}](https://doi.org/{doi}) ↗" if doi else "N/A"
                 st.markdown(
                     f"""
-                    <div style="background: rgba(14, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 16px; margin-bottom: 10px;">
-                        <div style="font-weight: 600; font-size: 14px; color: #F1F5F9;">{r.get('title', '')}</div>
-                        <div style="font-size: 12px; color: #94A3B8; margin-top: 4px;">
+                    <div style="background: {landmark_card_bg}; border: {landmark_card_border}; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px;">
+                        <div style="font-weight: 600; font-size: 14px; color: {landmark_title_color};">{r.get('title', '')}</div>
+                        <div style="font-size: 12px; color: {landmark_sub_color}; margin-top: 4px;">
                             <i>{r.get('journal', '')}</i> ({r.get('year', '')}) • 
                             <span style="color: #F59E0B; font-weight: 700;">{r.get('citations', 0)} Citations</span> • 
                             <span style="color: #10B981; font-weight: 600;">{r.get('quartile', 'N/A')}</span> • 

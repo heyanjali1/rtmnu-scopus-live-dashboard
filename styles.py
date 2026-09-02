@@ -4,27 +4,62 @@ Provides Dark/Light theme switching, glassmorphic UI tokens, topbar navigation,
 and university hero banner.
 """
 
+import os
+import base64
 from typing import Dict, Any, Optional
 from config import UNIVERSITY_CONFIG
+
+
+def get_base64_image(image_path: str) -> str:
+    """Helper to convert local image to base64 string for direct HTML embedding with robust path resolution."""
+    candidates = [
+        image_path,
+        os.path.join(os.path.dirname(__file__), image_path),
+        os.path.join(os.path.dirname(__file__), "assets", os.path.basename(image_path)),
+        os.path.join(os.getcwd(), image_path),
+        os.path.join(os.getcwd(), "assets", os.path.basename(image_path))
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            try:
+                with open(p, "rb") as f:
+                    return base64.b64encode(f.read()).decode("utf-8")
+            except Exception:
+                pass
+    return ""
 
 
 def get_custom_css(theme: str = "dark") -> str:
     """
     Returns custom CSS for ICARE glassmorphic design system supporting both Dark and Light themes.
+    Ensures complete readability, high contrast, and polished styling across all Streamlit components.
     """
     is_dark = (theme.lower() == "dark")
 
     # Theme color tokens
     bg_color = "#070D1E" if is_dark else "#F8FAFC"
-    card_bg = "rgba(14, 23, 42, 0.75)" if is_dark else "rgba(255, 255, 255, 0.88)"
+    card_bg = "rgba(14, 23, 42, 0.75)" if is_dark else "#FFFFFF"
     card_solid = "#0E172A" if is_dark else "#FFFFFF"
-    card_border = "1px solid rgba(255, 255, 255, 0.08)" if is_dark else "1px solid rgba(0, 0, 0, 0.08)"
-    card_shadow = "0 8px 32px 0 rgba(0, 0, 0, 0.37)" if is_dark else "0 8px 32px 0 rgba(2, 132, 199, 0.08)"
+    card_border = "1px solid rgba(255, 255, 255, 0.08)" if is_dark else "1px solid #E2E8F0"
+    card_shadow = "0 8px 32px 0 rgba(0, 0, 0, 0.37)" if is_dark else "0 4px 20px 0 rgba(0, 0, 0, 0.05)"
+    
     text_primary = "#F1F5F9" if is_dark else "#0F172A"
-    text_secondary = "#94A3B8" if is_dark else "#64748B"
-    input_bg = "rgba(15, 23, 42, 0.6)" if is_dark else "#FFFFFF"
-    input_border = "rgba(255, 255, 255, 0.12)" if is_dark else "rgba(0, 0, 0, 0.12)"
-    badge_bg = "rgba(2, 132, 199, 0.15)" if is_dark else "rgba(2, 132, 199, 0.10)"
+    text_secondary = "#94A3B8" if is_dark else "#475569"
+    
+    sidebar_bg = "#0A1128" if is_dark else "#FFFFFF"
+    sidebar_border = "1px solid rgba(255, 255, 255, 0.08)" if is_dark else "1px solid #E2E8F0"
+    
+    input_bg = "rgba(15, 23, 42, 0.8)" if is_dark else "#FFFFFF"
+    input_border = "rgba(255, 255, 255, 0.15)" if is_dark else "#CBD5E1"
+    
+    tag_bg = "rgba(2, 132, 199, 0.2)" if is_dark else "#E0F2FE"
+    tag_text = "#38BDF8" if is_dark else "#0369A1"
+    tag_border = "1px solid rgba(56, 189, 248, 0.3)" if is_dark else "1px solid #BAE6FD"
+
+    menu_bg = "#0E172A" if is_dark else "#FFFFFF"
+    menu_item_hover = "rgba(2, 132, 199, 0.2)" if is_dark else "#F1F5F9"
+    
+    badge_bg = "rgba(2, 132, 199, 0.15)" if is_dark else "#F1F5F9"
 
     primary_blue = UNIVERSITY_CONFIG.get("primary_color", "#0284C7")
     gold_accent = UNIVERSITY_CONFIG.get("accent_color", "#F59E0B")
@@ -40,7 +75,7 @@ def get_custom_css(theme: str = "dark") -> str:
         background-image: {
             "radial-gradient(at 0% 0%, rgba(2, 132, 199, 0.12) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.08) 0px, transparent 50%)"
             if is_dark else
-            "radial-gradient(at 0% 0%, rgba(2, 132, 199, 0.06) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.04) 0px, transparent 50%)"
+            "radial-gradient(at 0% 0%, rgba(2, 132, 199, 0.04) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.03) 0px, transparent 50%)"
         } !important;
         color: {text_primary} !important;
         font-family: 'Inter', sans-serif !important;
@@ -151,7 +186,7 @@ def get_custom_css(theme: str = "dark") -> str:
         color: {text_primary} !important;
         border: {card_border};
         font-size: 12px;
-        font-weight: 500;
+        font-weight: 600;
         padding: 5px 12px;
         border-radius: 30px;
         display: inline-flex;
@@ -172,7 +207,7 @@ def get_custom_css(theme: str = "dark") -> str:
     }}
 
     .hero-main-title {{
-        font-size: 30px !important;
+        font-size: 28px !important;
         font-weight: 700 !important;
         color: {text_primary} !important;
         margin: 0 0 8px 0 !important;
@@ -180,7 +215,7 @@ def get_custom_css(theme: str = "dark") -> str:
     }}
 
     .hero-sub {{
-        color: {text_secondary};
+        color: {text_secondary} !important;
         font-size: 14px;
         margin: 0;
     }}
@@ -191,7 +226,7 @@ def get_custom_css(theme: str = "dark") -> str:
         border-radius: 14px;
         padding: 16px 20px;
         text-align: center;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        box-shadow: {card_shadow};
     }}
 
     .hero-stat-number {{
@@ -208,8 +243,8 @@ def get_custom_css(theme: str = "dark") -> str:
 
     .hero-stat-label {{
         font-size: 12px;
-        font-weight: 500;
-        color: {text_secondary};
+        font-weight: 600;
+        color: {text_secondary} !important;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-top: 4px;
@@ -244,7 +279,7 @@ def get_custom_css(theme: str = "dark") -> str:
     .kpi-title {{
         font-size: 12px;
         font-weight: 600;
-        color: {text_secondary};
+        color: {text_secondary} !important;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-bottom: 6px;
@@ -254,24 +289,24 @@ def get_custom_css(theme: str = "dark") -> str:
         font-family: 'Outfit', sans-serif;
         font-size: 26px;
         font-weight: 700;
-        color: {text_primary};
+        color: {text_primary} !important;
         line-height: 1.1;
         margin-bottom: 4px;
     }}
 
     .kpi-subtext {{
         font-size: 11px;
-        color: {text_secondary};
+        color: {text_secondary} !important;
     }}
 
     .kpi-delta-up {{
-        color: #10B981;
+        color: #10B981 !important;
         font-weight: 600;
         font-size: 11px;
     }}
 
     .kpi-delta-gold {{
-        color: {gold_accent};
+        color: {gold_accent} !important;
         font-weight: 600;
         font-size: 11px;
     }}
@@ -290,20 +325,94 @@ def get_custom_css(theme: str = "dark") -> str:
 
     /* Streamlit Sidebar Customization */
     section[data-testid="stSidebar"] {{
-        background-color: {card_solid} !important;
-        border-right: {card_border} !important;
+        background-color: {sidebar_bg} !important;
+        border-right: {sidebar_border} !important;
+    }}
+
+    section[data-testid="stSidebar"] * {{
+        color: {text_primary} !important;
     }}
 
     section[data-testid="stSidebar"] h1,
     section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3 {{
+    section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] label {{
         color: {text_primary} !important;
+        font-weight: 600 !important;
+    }}
+
+    /* Streamlit Selectbox & Multiselect */
+    div[data-baseweb="select"] > div {{
+        background-color: {input_bg} !important;
+        border-color: {input_border} !important;
+        color: {text_primary} !important;
+        border-radius: 8px !important;
+    }}
+
+    div[data-baseweb="select"] span {{
+        color: {text_primary} !important;
+    }}
+
+    div[data-baseweb="select"] input {{
+        color: {text_primary} !important;
+    }}
+
+    /* Multiselect Tags / Selected Items */
+    span[data-baseweb="tag"] {{
+        background-color: {tag_bg} !important;
+        border: {tag_border} !important;
+        border-radius: 6px !important;
+    }}
+
+    span[data-baseweb="tag"] span {{
+        color: {tag_text} !important;
+        font-weight: 600 !important;
+    }}
+
+    span[data-baseweb="tag"] svg {{
+        fill: {tag_text} !important;
+    }}
+
+    /* Dropdown Menus & Popovers */
+    div[data-baseweb="popover"],
+    ul[data-baseweb="menu"] {{
+        background-color: {menu_bg} !important;
+        border: {card_border} !important;
+        border-radius: 8px !important;
+        box-shadow: {card_shadow} !important;
+    }}
+
+    li[data-baseweb="menu-item"] {{
+        color: {text_primary} !important;
+        background-color: transparent !important;
+    }}
+
+    li[data-baseweb="menu-item"]:hover {{
+        background-color: {menu_item_hover} !important;
+        color: {primary_blue} !important;
+    }}
+
+    /* Text Inputs */
+    div[data-baseweb="input"] > div {{
+        background-color: {input_bg} !important;
+        border-color: {input_border} !important;
+        color: {text_primary} !important;
+        border-radius: 8px !important;
+    }}
+
+    div[data-baseweb="input"] input {{
+        color: {text_primary} !important;
+        background-color: transparent !important;
+    }}
+
+    div[data-baseweb="input"] input::placeholder {{
+        color: {text_secondary} !important;
     }}
 
     /* Streamlit Tabs */
     .stTabs [data-baseweb="tab-list"] {{
         gap: 8px;
-        background-color: {input_bg};
+        background-color: {badge_bg};
         padding: 6px;
         border-radius: 12px;
         border: {card_border};
@@ -315,7 +424,7 @@ def get_custom_css(theme: str = "dark") -> str:
         font-family: 'Outfit', sans-serif;
         font-weight: 600;
         font-size: 14px;
-        color: {text_secondary};
+        color: {text_secondary} !important;
     }}
 
     .stTabs [aria-selected="true"] {{
@@ -342,6 +451,17 @@ def get_custom_css(theme: str = "dark") -> str:
         transform: translateY(-1px) !important;
     }}
 
+    /* Expanders */
+    div[data-testid="stExpander"] {{
+        background-color: {card_bg} !important;
+        border: {card_border} !important;
+        border-radius: 12px !important;
+    }}
+
+    div[data-testid="stExpander"] * {{
+        color: {text_primary} !important;
+    }}
+
     /* Dataframe styling */
     div[data-testid="stDataFrame"] {{
         border: {card_border};
@@ -354,7 +474,7 @@ def get_custom_css(theme: str = "dark") -> str:
         text-align: center;
         padding: 24px 0;
         font-size: 12px;
-        color: {text_secondary};
+        color: {text_secondary} !important;
         border-top: {card_border};
         margin-top: 40px;
     }}
@@ -362,32 +482,16 @@ def get_custom_css(theme: str = "dark") -> str:
     """
 
 
-def get_base64_image(image_path: str) -> str:
-    """Helper to convert local image to base64 string for direct HTML embedding with robust path resolution."""
-    import os
-    import base64
-    candidates = [
-        image_path,
-        os.path.join(os.path.dirname(__file__), image_path),
-        os.path.join(os.path.dirname(__file__), "assets", os.path.basename(image_path)),
-        os.path.join(os.getcwd(), image_path),
-        os.path.join(os.getcwd(), "assets", os.path.basename(image_path))
-    ]
-    for p in candidates:
-        if os.path.exists(p):
-            try:
-                with open(p, "rb") as f:
-                    return base64.b64encode(f.read()).decode("utf-8")
-            except Exception:
-                pass
-    return ""
-
-
 def render_icare_topbar(theme: str = "dark") -> str:
     """
     Renders the ICARE Top Navigation Bar with branding, ICARE logo, RTMNU seal logo,
     portal intelligence badge, university metadata, and NIRF ID.
+    Supports both Dark and Light themes with optimal contrast.
     """
+    is_dark = (theme.lower() == "dark")
+    text_primary = "#F1F5F9" if is_dark else "#0F172A"
+    primary_blue = UNIVERSITY_CONFIG.get("primary_color", "#0284C7")
+    
     nirf_id = UNIVERSITY_CONFIG.get("nirf_id", "IR-O-U-0320")
     city = UNIVERSITY_CONFIG.get("city", "Nagpur, Maharashtra")
     full_name = UNIVERSITY_CONFIG.get("full_name", "Rashtrasant Tukadoji Maharaj Nagpur University")
@@ -396,7 +500,7 @@ def render_icare_topbar(theme: str = "dark") -> str:
     icare_b64 = get_base64_image("assets/icare_logo.png")
     rtmnu_b64 = get_base64_image("assets/rtmnu_logo.png")
 
-    icare_img_html = f'<img src="data:image/png;base64,{icare_b64}" alt="ICARE Logo" style="height: 32px; background: #FFFFFF; padding: 2px 6px; border-radius: 6px; object-fit: contain; vertical-align: middle; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">' if icare_b64 else '<div class="icare-logo-pill"><span>⚡</span><span>ICARE</span></div>'
+    icare_img_html = f'<img src="data:image/png;base64,{icare_b64}" alt="ICARE Logo" style="height: 32px; background: #FFFFFF; padding: 2px 6px; border-radius: 6px; object-fit: contain; vertical-align: middle; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">' if icare_b64 else '<div class="icare-logo-pill"><span>⚡</span><span>ICARE</span></div>'
     
     rtmnu_img_html = f'<img src="data:image/png;base64,{rtmnu_b64}" alt="RTMNU Seal" style="height: 38px; width: 38px; border-radius: 50%; object-fit: cover; vertical-align: middle; border: 1.5px solid #F59E0B; box-shadow: 0 2px 8px rgba(245,158,11,0.25);">' if rtmnu_b64 else '<span>🏛</span>'
 
@@ -407,7 +511,7 @@ def render_icare_topbar(theme: str = "dark") -> str:
             <div class="icare-tag-cyan">PORTAL INTELLIGENCE</div>
             <div style="display: flex; align-items: center; gap: 8px;">
                 {rtmnu_img_html}
-                <div style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px; color: #F1F5F9;">
+                <div style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px; color: {text_primary};">
                     {full_name}
                 </div>
             </div>
@@ -425,6 +529,9 @@ def render_icare_hero(total_pubs: int, total_cites: int, theme: str = "dark") ->
     Renders the Hero banner with centenary university badges, NAAC A+ accreditation,
     NIRF university category ID, RTMNU seal, and highlight stat rank box.
     """
+    is_dark = (theme.lower() == "dark")
+    text_primary = "#F1F5F9" if is_dark else "#0F172A"
+    
     full_name = UNIVERSITY_CONFIG.get("full_name", "Rashtrasant Tukadoji Maharaj Nagpur University")
     app_title = UNIVERSITY_CONFIG.get("app_title", "RTMNU Live Scopus Intelligence Dashboard")
     status_tag = UNIVERSITY_CONFIG.get("status_tag", "🏛 Centenary State University (Estd. 1923)")
@@ -448,8 +555,8 @@ def render_icare_hero(total_pubs: int, total_cites: int, theme: str = "dark") ->
             <div style="display: flex; align-items: center; gap: 18px; flex: 1; min-width: 320px;">
                 {rtmnu_hero_img}
                 <div>
-                    <h1 class="hero-main-title" style="margin: 0; font-size: 26px;">🏛 {app_title}</h1>
-                    <p class="hero-sub" style="margin-top: 4px;">
+                    <h1 class="hero-main-title">🏛 {app_title}</h1>
+                    <p class="hero-sub">
                         Institutional Research Excellence & Scopus Bibliometric Intelligence for <b>{full_name}</b>.
                     </p>
                 </div>
