@@ -86,6 +86,9 @@ with st.sidebar:
     current_theme = "dark" if "Dark" in theme_choice else "light"
     is_dark = (current_theme == "dark")
     
+    text_color = "#F1F5F9" if is_dark else "#0F172A"
+    text_secondary = "#94A3B8" if is_dark else "#475569"
+    
     brand_bg = "linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(14, 23, 42, 0.8) 100%)" if is_dark else "linear-gradient(135deg, rgba(2, 132, 199, 0.1) 0%, rgba(241, 245, 249, 0.95) 100%)"
     brand_border = "1px solid rgba(2, 132, 199, 0.3)" if is_dark else "1px solid #BAE6FD"
     brand_title_color = "#0284C7"
@@ -301,6 +304,7 @@ plot_bg = "rgba(14, 23, 42, 0.4)" if is_dark else "#FFFFFF"
 paper_bg = "rgba(0,0,0,0)"
 grid_color = "rgba(255, 255, 255, 0.08)" if is_dark else "rgba(0, 0, 0, 0.06)"
 text_color = "#F1F5F9" if is_dark else "#0F172A"
+text_secondary = "#94A3B8" if is_dark else "#475569"
 
 # ---------------------------------------------------------
 # Tabs 1 to 7 Navigation
