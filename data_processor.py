@@ -1,7 +1,8 @@
 """
-RTMNU Scopus Dashboard - Data Processor
+RTMNU Scopus Dashboard - Data Processor & Analytics Engine
+Rashtrasant Tukadoji Maharaj Nagpur University (Estd. 1923) | NIRF: IR-O-U-0320 | Scopus AF-ID: 60015668
 Provides analytics engines, KPI calculation, author leaderboard computation,
-h-index algorithms, multi-dimensional filtering, and BibTeX export.
+h-index algorithms, multi-dimensional filtering, BibTeX export, and print dossier HTML.
 """
 
 import re

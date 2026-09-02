@@ -1,3 +1,9 @@
+"""
+RTMNU Scopus Dashboard - Institutional Configuration
+Rashtrasant Tukadoji Maharaj Nagpur University (Estd. 1923)
+NIRF ID: IR-O-U-0320 | Scopus AF-ID: 60015668 | NAAC A+ (CGPA 3.32)
+"""
+
 UNIVERSITY_CONFIG = {
     "full_name": "Rashtrasant Tukadoji Maharaj Nagpur University",
     "short_name": "RTMNU",

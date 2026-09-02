@@ -1,5 +1,6 @@
 """
 RTMNU Scopus Intelligence Dashboard - Scopus Search API Integration
+Rashtrasant Tukadoji Maharaj Nagpur University (Estd. 1923) | NIRF: IR-O-U-0320 | Scopus AF-ID: 60015668
 Handles live connectivity, multi-variant institutional querying, cursor pagination,
 field extraction, journal ranking enrichment, local JSON caching, and auto-sync.
 """

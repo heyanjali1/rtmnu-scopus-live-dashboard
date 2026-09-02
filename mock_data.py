@@ -1,7 +1,7 @@
 """
-RTMNU Scopus Dashboard - Benchmark Mock Dataset Generator
-Generates ~2,500 realistic benchmark publications for Rashtrasant Tukadoji Maharaj Nagpur University (RTMNU)
-covering all academic departments, faculty, journals, citation metrics, and collaboration profiles.
+RTMNU Scopus Dashboard - Benchmark Mock Publication Generator
+Rashtrasant Tukadoji Maharaj Nagpur University (Estd. 1923) | NIRF: IR-O-U-0320 | Scopus AF-ID: 60015668
+Generates 2,500 realistic benchmark publications for RTMNU across all departments for offline mode.
 """
 
 import os
