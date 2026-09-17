@@ -324,97 +324,97 @@ def get_custom_css(theme: str = "dark") -> str:
     }}
 
     /* CSS Variables for Streamlit Native Theming */
-    :root {
+    :root {{
         --background-color: {bg_color} !important;
         --secondary-background-color: {sidebar_bg} !important;
         --text-color: {text_primary} !important;
-    }
+    }}
 
     /* Streamlit Sidebar Customization */
     section[data-testid="stSidebar"],
-    section[data-testid="stSidebar"] > div:first-child {
+    section[data-testid="stSidebar"] > div:first-child {{
         background-color: {sidebar_bg} !important;
         border-right: {sidebar_border} !important;
-    }
+    }}
 
     section[data-testid="stSidebar"] h1,
     section[data-testid="stSidebar"] h2,
     section[data-testid="stSidebar"] h3,
     section[data-testid="stSidebar"] label,
     section[data-testid="stSidebar"] p,
-    section[data-testid="stSidebar"] span {
+    section[data-testid="stSidebar"] span {{
         color: {text_primary} !important;
-    }
+    }}
 
-    section[data-testid="stSidebar"] label {
+    section[data-testid="stSidebar"] label {{
         font-weight: 600 !important;
-    }
+    }}
 
     /* Radio Group (Display Theme) */
-    div[role="radiogroup"] label {
+    div[role="radiogroup"] label {{
         color: {text_primary} !important;
-    }
-    div[role="radiogroup"] label div[data-testid="stMarkdownContainer"] p {
+    }}
+    div[role="radiogroup"] label div[data-testid="stMarkdownContainer"] p {{
         color: {text_primary} !important;
         font-weight: 500;
-    }
+    }}
 
     /* Streamlit Selectbox & Multiselect Containers */
     div[data-baseweb="select"],
     div[data-baseweb="select"] > div,
     div[data-baseweb="select"] > div > div,
     div[data-testid="stMultiSelect"] > div,
-    div[data-testid="stSelectbox"] > div {
+    div[data-testid="stSelectbox"] > div {{
         background-color: {input_bg} !important;
         border-color: {input_border} !important;
         color: {text_primary} !important;
-    }
+    }}
 
-    div[data-baseweb="select"] > div {
+    div[data-baseweb="select"] > div {{
         border: 1px solid {input_border} !important;
         border-radius: 8px !important;
-    }
+    }}
 
     div[data-baseweb="select"] div,
     div[data-baseweb="select"] span,
-    div[data-baseweb="select"] p {
+    div[data-baseweb="select"] p {{
         color: {text_primary} !important;
-    }
+    }}
 
-    div[data-baseweb="select"] input {
+    div[data-baseweb="select"] input {{
         color: {text_primary} !important;
         background-color: transparent !important;
-    }
+    }}
 
     /* Dropdown Arrow & Clear Icons */
-    div[data-baseweb="select"] svg {
+    div[data-baseweb="select"] svg {{
         fill: {text_secondary} !important;
-    }
+    }}
 
     /* Placeholder text inside Selectbox / Multiselect ("Choose options") */
     div[data-baseweb="select"] [aria-hidden="true"],
     div[data-baseweb="select"] div[class*="placeholder"],
-    div[data-baseweb="select"] [data-testid="stMarkdownContainer"] p {
+    div[data-baseweb="select"] [data-testid="stMarkdownContainer"] p {{
         color: {text_secondary} !important;
-    }
+    }}
 
     /* Multiselect Selected Chips / Tags */
     [data-baseweb="tag"],
     span[data-baseweb="tag"],
-    div[data-baseweb="tag"] {
+    div[data-baseweb="tag"] {{
         background-color: {tag_bg} !important;
         border: {tag_border} !important;
         border-radius: 6px !important;
-    }
+    }}
 
     [data-baseweb="tag"] *,
     span[data-baseweb="tag"] *,
-    div[data-baseweb="tag"] * {
+    div[data-baseweb="tag"] * {{
         color: {tag_text} !important;
         fill: {tag_text} !important;
         background-color: transparent !important;
         font-weight: 600 !important;
-    }
+    }}
 
     /* Dropdown Menus & Popovers (Portal layer when dropdown is open) */
     div[data-baseweb="popover"],
@@ -422,12 +422,12 @@ def get_custom_css(theme: str = "dark") -> str:
     div[data-baseweb="popover"] ul,
     ul[data-baseweb="menu"],
     ul[role="listbox"],
-    div[role="listbox"] {
+    div[role="listbox"] {{
         background-color: {menu_bg} !important;
         border: {card_border} !important;
         border-radius: 8px !important;
         box-shadow: {card_shadow} !important;
-    }
+    }}
 
     li[data-baseweb="menu-item"],
     li[role="option"],
@@ -436,84 +436,84 @@ def get_custom_css(theme: str = "dark") -> str:
     li[data-baseweb="menu-item"] span,
     li[role="option"] span,
     li[data-baseweb="menu-item"] p,
-    li[role="option"] p {
+    li[role="option"] p {{
         color: {text_primary} !important;
         background-color: {menu_bg} !important;
-    }
+    }}
 
     li[data-baseweb="menu-item"]:hover,
     li[role="option"]:hover,
     li[data-baseweb="menu-item"]:hover > div,
     li[role="option"]:hover > div,
     li[data-baseweb="menu-item"]:hover span,
-    li[role="option"]:hover span {
+    li[role="option"]:hover span {{
         background-color: {menu_item_hover} !important;
         color: {primary_blue} !important;
-    }
+    }}
 
     li[aria-selected="true"],
     li[aria-selected="true"] > div,
-    li[aria-selected="true"] span {
+    li[aria-selected="true"] span {{
         background-color: {tag_bg} !important;
         color: {tag_text} !important;
         font-weight: 600 !important;
-    }
+    }}
 
     /* Text Inputs */
     div[data-baseweb="input"],
     div[data-baseweb="input"] > div,
     div[data-baseweb="input"] > div > div,
     div[data-testid="stTextInput"] > div,
-    div[data-testid="stTextInput"] input {
+    div[data-testid="stTextInput"] input {{
         background-color: {input_bg} !important;
         border-color: {input_border} !important;
         color: {text_primary} !important;
-    }
+    }}
 
-    div[data-baseweb="input"] > div {
+    div[data-baseweb="input"] > div {{
         border: 1px solid {input_border} !important;
         border-radius: 8px !important;
-    }
+    }}
 
     div[data-baseweb="input"] input,
-    div[data-testid="stTextInput"] input {
+    div[data-testid="stTextInput"] input {{
         color: {text_primary} !important;
         background-color: transparent !important;
-    }
+    }}
 
     div[data-baseweb="input"] input::placeholder,
-    div[data-testid="stTextInput"] input::placeholder {
+    div[data-testid="stTextInput"] input::placeholder {{
         color: {text_secondary} !important;
-    }
+    }}
 
     /* Streamlit Tabs */
-    .stTabs [data-baseweb="tab-list"] {
+    .stTabs [data-baseweb="tab-list"] {{
         gap: 8px;
         background-color: {badge_bg};
         padding: 6px;
         border-radius: 12px;
         border: {card_border};
-    }
+    }}
 
-    .stTabs [data-baseweb="tab"] {
+    .stTabs [data-baseweb="tab"] {{
         border-radius: 8px;
         padding: 8px 18px;
         font-family: 'Outfit', sans-serif;
         font-weight: 600;
         font-size: 14px;
         color: {text_secondary} !important;
-    }
+    }}
 
-    .stTabs [aria-selected="true"] {
+    .stTabs [aria-selected="true"] {{
         background-color: {primary_blue} !important;
         color: #FFFFFF !important;
-    }
+    }}
 
     /* Primary Buttons & Download Buttons (Research Data & BibTeX Suite) */
     .stButton > button,
     .stDownloadButton > button,
     div[data-testid="stDownloadButton"] > button,
-    div[data-testid="stDownloadButton"] button {
+    div[data-testid="stDownloadButton"] button {{
         background: linear-gradient(135deg, {primary_blue} 0%, #0369A1 100%) !important;
         color: #FFFFFF !important;
         border: none !important;
@@ -524,30 +524,30 @@ def get_custom_css(theme: str = "dark") -> str:
         padding: 8px 20px !important;
         box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25) !important;
         transition: all 0.2s ease !important;
-    }
+    }}
 
     .stButton > button:hover,
     .stDownloadButton > button:hover,
     div[data-testid="stDownloadButton"] > button:hover,
-    div[data-testid="stDownloadButton"] button:hover {
+    div[data-testid="stDownloadButton"] button:hover {{
         box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45) !important;
         transform: translateY(-1px) !important;
         background: linear-gradient(135deg, #0284C7 0%, #026AA2 100%) !important;
-    }
+    }}
 
     .stButton > button *,
     .stDownloadButton > button *,
     div[data-testid="stDownloadButton"] button *,
     div[data-testid="stDownloadButton"] button p,
-    div[data-testid="stDownloadButton"] button span {
+    div[data-testid="stDownloadButton"] button span {{
         color: #FFFFFF !important;
-    }
+    }}
 
     /* Sliders in sidebar */
     div[data-testid="stSlider"] [data-testid="stMarkdownContainer"] p,
-    div[data-testid="stSlider"] div {
+    div[data-testid="stSlider"] div {{
         color: {text_primary} !important;
-    }
+    }}
 
     /* Expanders */
     div[data-testid="stExpander"] {{
