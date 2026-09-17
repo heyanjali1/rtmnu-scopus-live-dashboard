@@ -26,7 +26,7 @@ def generate_executive_dossier(df: pd.DataFrame) -> str:
     return f"""### 📊 Executive Scopus Research Intelligence Dossier
 
 **Institution:** {uni_name} (RTMNU)  
-**Accreditation & IDs:** NIRF: `{nirf_id}` | Scopus AF-ID: `{scopus_id}` | NAAC A+ Grade (CGPA 3.32)  
+**Accreditation & IDs:** NIRF: `{nirf_id}` | Scopus AF-ID: `{scopus_id}` | NAAC A Grade  
 **Date of Intelligence Synthesis:** {datetime.datetime.now().strftime('%d %B %Y')}
 
 ---

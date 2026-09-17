@@ -1,6 +1,6 @@
 # 🏛️ RTMNU Live Scopus Intelligence Dashboard
 ### Rashtrasant Tukadoji Maharaj Nagpur University (Estd. 1923) • Centenary State University
-**NIRF ID:** `IR-O-U-0320` (Category: University) | **Accreditation:** ⭐ NAAC A+ (CGPA 3.32) | **Scopus AF-ID:** `60015668`
+**NIRF ID:** `IR-O-U-0320` (Category: University) | **Accreditation:** ⭐ NAAC A | **Scopus AF-ID:** `60015668`
 
 ---
 
@@ -16,7 +16,7 @@ Built with **Python**, **Streamlit**, and **Plotly**, the dashboard integrates w
 - **Location:** Nagpur, Maharashtra, India
 - **Status:** Centenary State University (Established 1923)
 - **NIRF Institutional ID:** `IR-O-U-0320`
-- **NAAC Accreditation:** Grade A+ (CGPA 3.32)
+- **NAAC Accreditation:** Grade A
 - **Scopus Affiliation ID:** `60015668`
 - **Live Scopus Multi-Variant Query:**
   ```sql

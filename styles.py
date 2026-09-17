@@ -323,117 +323,197 @@ def get_custom_css(theme: str = "dark") -> str:
         box-shadow: {card_shadow};
     }}
 
+    /* CSS Variables for Streamlit Native Theming */
+    :root {
+        --background-color: {bg_color} !important;
+        --secondary-background-color: {sidebar_bg} !important;
+        --text-color: {text_primary} !important;
+    }
+
     /* Streamlit Sidebar Customization */
-    section[data-testid="stSidebar"] {{
+    section[data-testid="stSidebar"],
+    section[data-testid="stSidebar"] > div:first-child {
         background-color: {sidebar_bg} !important;
         border-right: {sidebar_border} !important;
-    }}
-
-    section[data-testid="stSidebar"] * {{
-        color: {text_primary} !important;
-    }}
+    }
 
     section[data-testid="stSidebar"] h1,
     section[data-testid="stSidebar"] h2,
     section[data-testid="stSidebar"] h3,
-    section[data-testid="stSidebar"] label {{
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] span {
         color: {text_primary} !important;
-        font-weight: 600 !important;
-    }}
+    }
 
-    /* Streamlit Selectbox & Multiselect */
-    div[data-baseweb="select"] > div {{
+    section[data-testid="stSidebar"] label {
+        font-weight: 600 !important;
+    }
+
+    /* Radio Group (Display Theme) */
+    div[role="radiogroup"] label {
+        color: {text_primary} !important;
+    }
+    div[role="radiogroup"] label div[data-testid="stMarkdownContainer"] p {
+        color: {text_primary} !important;
+        font-weight: 500;
+    }
+
+    /* Streamlit Selectbox & Multiselect Containers */
+    div[data-baseweb="select"],
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="select"] > div > div,
+    div[data-testid="stMultiSelect"] > div,
+    div[data-testid="stSelectbox"] > div {
         background-color: {input_bg} !important;
         border-color: {input_border} !important;
         color: {text_primary} !important;
+    }
+
+    div[data-baseweb="select"] > div {
+        border: 1px solid {input_border} !important;
         border-radius: 8px !important;
-    }}
+    }
 
-    div[data-baseweb="select"] span {{
+    div[data-baseweb="select"] div,
+    div[data-baseweb="select"] span,
+    div[data-baseweb="select"] p {
         color: {text_primary} !important;
-    }}
+    }
 
-    div[data-baseweb="select"] input {{
+    div[data-baseweb="select"] input {
         color: {text_primary} !important;
-    }}
+        background-color: transparent !important;
+    }
 
-    /* Multiselect Tags / Selected Items */
-    span[data-baseweb="tag"] {{
+    /* Dropdown Arrow & Clear Icons */
+    div[data-baseweb="select"] svg {
+        fill: {text_secondary} !important;
+    }
+
+    /* Placeholder text inside Selectbox / Multiselect ("Choose options") */
+    div[data-baseweb="select"] [aria-hidden="true"],
+    div[data-baseweb="select"] div[class*="placeholder"],
+    div[data-baseweb="select"] [data-testid="stMarkdownContainer"] p {
+        color: {text_secondary} !important;
+    }
+
+    /* Multiselect Selected Chips / Tags */
+    [data-baseweb="tag"],
+    span[data-baseweb="tag"],
+    div[data-baseweb="tag"] {
         background-color: {tag_bg} !important;
         border: {tag_border} !important;
         border-radius: 6px !important;
-    }}
+    }
 
-    span[data-baseweb="tag"] span {{
+    [data-baseweb="tag"] *,
+    span[data-baseweb="tag"] *,
+    div[data-baseweb="tag"] * {
         color: {tag_text} !important;
-        font-weight: 600 !important;
-    }}
-
-    span[data-baseweb="tag"] svg {{
         fill: {tag_text} !important;
-    }}
+        background-color: transparent !important;
+        font-weight: 600 !important;
+    }
 
-    /* Dropdown Menus & Popovers */
+    /* Dropdown Menus & Popovers (Portal layer when dropdown is open) */
     div[data-baseweb="popover"],
-    ul[data-baseweb="menu"] {{
+    div[data-baseweb="popover"] > div,
+    div[data-baseweb="popover"] ul,
+    ul[data-baseweb="menu"],
+    ul[role="listbox"],
+    div[role="listbox"] {
         background-color: {menu_bg} !important;
         border: {card_border} !important;
         border-radius: 8px !important;
         box-shadow: {card_shadow} !important;
-    }}
+    }
 
-    li[data-baseweb="menu-item"] {{
+    li[data-baseweb="menu-item"],
+    li[role="option"],
+    li[data-baseweb="menu-item"] > div,
+    li[role="option"] > div,
+    li[data-baseweb="menu-item"] span,
+    li[role="option"] span,
+    li[data-baseweb="menu-item"] p,
+    li[role="option"] p {
         color: {text_primary} !important;
-        background-color: transparent !important;
-    }}
+        background-color: {menu_bg} !important;
+    }
 
-    li[data-baseweb="menu-item"]:hover {{
+    li[data-baseweb="menu-item"]:hover,
+    li[role="option"]:hover,
+    li[data-baseweb="menu-item"]:hover > div,
+    li[role="option"]:hover > div,
+    li[data-baseweb="menu-item"]:hover span,
+    li[role="option"]:hover span {
         background-color: {menu_item_hover} !important;
         color: {primary_blue} !important;
-    }}
+    }
+
+    li[aria-selected="true"],
+    li[aria-selected="true"] > div,
+    li[aria-selected="true"] span {
+        background-color: {tag_bg} !important;
+        color: {tag_text} !important;
+        font-weight: 600 !important;
+    }
 
     /* Text Inputs */
-    div[data-baseweb="input"] > div {{
+    div[data-baseweb="input"],
+    div[data-baseweb="input"] > div,
+    div[data-baseweb="input"] > div > div,
+    div[data-testid="stTextInput"] > div,
+    div[data-testid="stTextInput"] input {
         background-color: {input_bg} !important;
         border-color: {input_border} !important;
         color: {text_primary} !important;
-        border-radius: 8px !important;
-    }}
+    }
 
-    div[data-baseweb="input"] input {{
+    div[data-baseweb="input"] > div {
+        border: 1px solid {input_border} !important;
+        border-radius: 8px !important;
+    }
+
+    div[data-baseweb="input"] input,
+    div[data-testid="stTextInput"] input {
         color: {text_primary} !important;
         background-color: transparent !important;
-    }}
+    }
 
-    div[data-baseweb="input"] input::placeholder {{
+    div[data-baseweb="input"] input::placeholder,
+    div[data-testid="stTextInput"] input::placeholder {
         color: {text_secondary} !important;
-    }}
+    }
 
     /* Streamlit Tabs */
-    .stTabs [data-baseweb="tab-list"] {{
+    .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
         background-color: {badge_bg};
         padding: 6px;
         border-radius: 12px;
         border: {card_border};
-    }}
+    }
 
-    .stTabs [data-baseweb="tab"] {{
+    .stTabs [data-baseweb="tab"] {
         border-radius: 8px;
         padding: 8px 18px;
         font-family: 'Outfit', sans-serif;
         font-weight: 600;
         font-size: 14px;
         color: {text_secondary} !important;
-    }}
+    }
 
-    .stTabs [aria-selected="true"] {{
+    .stTabs [aria-selected="true"] {
         background-color: {primary_blue} !important;
         color: #FFFFFF !important;
-    }}
+    }
 
-    /* Buttons */
-    .stButton > button {{
+    /* Primary Buttons & Download Buttons (Research Data & BibTeX Suite) */
+    .stButton > button,
+    .stDownloadButton > button,
+    div[data-testid="stDownloadButton"] > button,
+    div[data-testid="stDownloadButton"] button {
         background: linear-gradient(135deg, {primary_blue} 0%, #0369A1 100%) !important;
         color: #FFFFFF !important;
         border: none !important;
@@ -444,12 +524,30 @@ def get_custom_css(theme: str = "dark") -> str:
         padding: 8px 20px !important;
         box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25) !important;
         transition: all 0.2s ease !important;
-    }}
+    }
 
-    .stButton > button:hover {{
+    .stButton > button:hover,
+    .stDownloadButton > button:hover,
+    div[data-testid="stDownloadButton"] > button:hover,
+    div[data-testid="stDownloadButton"] button:hover {
         box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45) !important;
         transform: translateY(-1px) !important;
-    }}
+        background: linear-gradient(135deg, #0284C7 0%, #026AA2 100%) !important;
+    }
+
+    .stButton > button *,
+    .stDownloadButton > button *,
+    div[data-testid="stDownloadButton"] button *,
+    div[data-testid="stDownloadButton"] button p,
+    div[data-testid="stDownloadButton"] button span {
+        color: #FFFFFF !important;
+    }
+
+    /* Sliders in sidebar */
+    div[data-testid="stSlider"] [data-testid="stMarkdownContainer"] p,
+    div[data-testid="stSlider"] div {
+        color: {text_primary} !important;
+    }
 
     /* Expanders */
     div[data-testid="stExpander"] {{
@@ -526,7 +624,7 @@ def render_icare_topbar(theme: str = "dark") -> str:
 
 def render_icare_hero(total_pubs: int, total_cites: int, theme: str = "dark") -> str:
     """
-    Renders the Hero banner with centenary university badges, NAAC A+ accreditation,
+    Renders the Hero banner with centenary university badges, NAAC A accreditation,
     NIRF university category ID, RTMNU seal, and highlight stat rank box.
     """
     is_dark = (theme.lower() == "dark")
@@ -535,7 +633,7 @@ def render_icare_hero(total_pubs: int, total_cites: int, theme: str = "dark") ->
     full_name = UNIVERSITY_CONFIG.get("full_name", "Rashtrasant Tukadoji Maharaj Nagpur University")
     app_title = UNIVERSITY_CONFIG.get("app_title", "RTMNU Live Scopus Intelligence Dashboard")
     status_tag = UNIVERSITY_CONFIG.get("status_tag", "🏛 Centenary State University (Estd. 1923)")
-    naac_badge = UNIVERSITY_CONFIG.get("naac_badge", "⭐ NAAC A+ (CGPA 3.32)")
+    naac_badge = UNIVERSITY_CONFIG.get("naac_badge", "⭐ NAAC A")
     nirf_id = UNIVERSITY_CONFIG.get("nirf_id", "IR-O-U-0320")
     scopus_id = UNIVERSITY_CONFIG.get("scopus_af_id", "60015668")
     

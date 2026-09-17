@@ -86,6 +86,9 @@ with st.sidebar:
     current_theme = "dark" if "Dark" in theme_choice else "light"
     is_dark = (current_theme == "dark")
     
+    # Inject Custom Glassmorphic Styles Early so all widgets inherit correct theme
+    st.markdown(get_custom_css(current_theme), unsafe_allow_html=True)
+    
     text_color = "#F1F5F9" if is_dark else "#0F172A"
     text_secondary = "#94A3B8" if is_dark else "#475569"
     
@@ -1297,7 +1300,7 @@ st.markdown(
     f"""
     <div class="icare-footer">
         <b>{UNIVERSITY_CONFIG['full_name']}</b> • Centenary State University (Estd. 1923)<br>
-        NIRF ID: <b>{UNIVERSITY_CONFIG.get('nirf_id', 'IR-O-U-0320')}</b> • Scopus Affiliation ID: <b>{UNIVERSITY_CONFIG.get('scopus_af_id', '60015668')}</b> • {UNIVERSITY_CONFIG.get('naac_badge', '⭐ NAAC A+ (CGPA 3.32)')}<br>
+        NIRF ID: <b>{UNIVERSITY_CONFIG.get('nirf_id', 'IR-O-U-0320')}</b> • Scopus Affiliation ID: <b>{UNIVERSITY_CONFIG.get('scopus_af_id', '60015668')}</b> • {UNIVERSITY_CONFIG.get('naac_badge', '⭐ NAAC A')}<br>
         Powered by <b>ICARE Research Intelligence Portal</b> • Elsevier Scopus Search API
     </div>
     """,
