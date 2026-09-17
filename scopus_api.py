@@ -364,7 +364,7 @@ class ScopusAPIClient:
             "is_industry_collab": has_industry,
             "countries": list(countries),
             "affiliation": "Rashtrasant Tukadoji Maharaj Nagpur University, Nagpur, Maharashtra, India",
-            "affiliation_id": "60028250"
+            "affiliation_id": UNIVERSITY_CONFIG.get("scopus_af_id", "60015668")
         }
 
 

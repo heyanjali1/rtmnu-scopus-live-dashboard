@@ -391,7 +391,7 @@ def generate_mock_publications(count: int = 2500, seed: int = 42) -> List[Dict[s
             "is_industry_collab": is_industry,
             "countries": countries,
             "affiliation": "Rashtrasant Tukadoji Maharaj Nagpur University, Nagpur, Maharashtra, India",
-            "affiliation_id": "60028250"
+            "affiliation_id": "60015668"
         }
         publications.append(pub_record)
 
@@ -416,7 +416,7 @@ def seed_mock_cache_if_missing(cache_file_path: str = "data/rtmnu_scopus_cache.j
             "timestamp": datetime.datetime.now().timestamp(),
             "status": "benchmark_mock",
             "total_records": len(data),
-            "query_used": "AF-ID(60028250) OR AFFIL({Rashtrasant Tukadoji Maharaj Nagpur University}) OR AFFIL({Nagpur University}) OR AFFIL({RTMNU}) OR AFFIL({RTM Nagpur University})",
+            "query_used": "AF-ID(60015668) OR AFFIL({Rashtrasant Tukadoji Maharaj Nagpur University}) OR AFFIL({Nagpur University}) OR AFFIL({RTMNU}) OR AFFIL({RTM Nagpur University})",
             "data": data
         }
         with open(cache_file_path, "w", encoding="utf-8") as f:

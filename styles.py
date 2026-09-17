@@ -509,38 +509,61 @@ def get_custom_css(theme: str = "dark") -> str:
         color: #FFFFFF !important;
     }}
 
-    /* Primary Buttons & Download Buttons (Research Data & BibTeX Suite) */
+    /* Primary Buttons, Sidebar Action Buttons & Export Suite Buttons */
+    button[data-testid="baseButton-secondary"],
+    button[data-testid="baseButton-primary"],
+    div[data-testid="stButton"] > button,
+    section[data-testid="stSidebar"] div[data-testid="stButton"] > button,
+    section[data-testid="stSidebar"] button,
     .stButton > button,
     .stDownloadButton > button,
     div[data-testid="stDownloadButton"] > button,
     div[data-testid="stDownloadButton"] button {{
         background: linear-gradient(135deg, {primary_blue} 0%, #0369A1 100%) !important;
         color: #FFFFFF !important;
-        border: none !important;
+        border: 1px solid rgba(2, 132, 199, 0.4) !important;
         border-radius: 10px !important;
         font-family: 'Outfit', sans-serif !important;
-        font-weight: 600 !important;
-        font-size: 14px !important;
-        padding: 8px 20px !important;
-        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25) !important;
+        font-weight: 700 !important;
+        font-size: 13px !important;
+        padding: 9px 18px !important;
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3) !important;
         transition: all 0.2s ease !important;
     }}
 
+    button[data-testid="baseButton-secondary"]:hover,
+    button[data-testid="baseButton-primary"]:hover,
+    div[data-testid="stButton"] > button:hover,
+    section[data-testid="stSidebar"] div[data-testid="stButton"] > button:hover,
+    section[data-testid="stSidebar"] button:hover,
     .stButton > button:hover,
     .stDownloadButton > button:hover,
     div[data-testid="stDownloadButton"] > button:hover,
     div[data-testid="stDownloadButton"] button:hover {{
-        box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45) !important;
+        box-shadow: 0 6px 20px rgba(2, 132, 199, 0.5) !important;
         transform: translateY(-1px) !important;
         background: linear-gradient(135deg, #0284C7 0%, #026AA2 100%) !important;
     }}
 
+    section[data-testid="stSidebar"] div[data-testid="stButton"] button p,
+    section[data-testid="stSidebar"] div[data-testid="stButton"] button span,
+    section[data-testid="stSidebar"] div[data-testid="stButton"] button div,
+    section[data-testid="stSidebar"] button p,
+    section[data-testid="stSidebar"] button span,
+    section[data-testid="stSidebar"] button *,
+    button[data-testid="baseButton-secondary"] *,
+    button[data-testid="baseButton-secondary"] p,
+    button[data-testid="baseButton-primary"] *,
+    div[data-testid="stButton"] button *,
+    div[data-testid="stButton"] button p,
+    div[data-testid="stButton"] button span,
     .stButton > button *,
     .stDownloadButton > button *,
     div[data-testid="stDownloadButton"] button *,
     div[data-testid="stDownloadButton"] button p,
     div[data-testid="stDownloadButton"] button span {{
         color: #FFFFFF !important;
+        font-weight: 700 !important;
     }}
 
     /* Sliders in sidebar */
